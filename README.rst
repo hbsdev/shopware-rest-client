@@ -1,5 +1,5 @@
 ===============================
-Shopware REST API client (State: Proof of concept)
+Shopware REST API client (Proof of concept)
 ===============================
 
 .. image:: https://img.shields.io/travis/hbsdev/shopware-rest-client.svg
