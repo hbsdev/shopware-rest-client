@@ -1,0 +1,20 @@
+# Config file for automatic testing at travis-ci.org
+# see http://docs.travis-ci.com/user/languages/python/
+
+language: python
+
+python:
+  - "3.4"
+  - "3.3"
+
+# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+install: pip install -r requirements.txt
+
+# Travis CI pre-installs a few packages in each virtualenv by default to ease running tests:
+# pytest, nose, mock
+# so this is not necesary: before_install: pip install pytest
+# see also http://ilovesymposia.com/2014/10/15/continuous-integration-in-python-4-set-up-travis-ci/
+
+# command to run tests, e.g. python setup.py test
+script: py.test
+
