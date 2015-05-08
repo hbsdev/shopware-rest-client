@@ -10,6 +10,14 @@ Python 3 client library for Shopware 4 REST API
 * Free software: Apache License, Version 2.0
 * State: Proof of concept
 
+Install latest release
+----------------------
+
+.. code::
+
+  pip install --upgrade https://github.com/hbsdev/shopware-rest-client/raw/master/dist/shopware_rest_client-0.1.0.zip
+
+
 Test Configuration
 ------------------
 
