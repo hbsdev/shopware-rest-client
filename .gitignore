@@ -6,7 +6,7 @@
 # Packages
 *.egg
 *.egg-info
-dist
+# dist # we want the zip files on githubg
 build
 eggs
 parts
