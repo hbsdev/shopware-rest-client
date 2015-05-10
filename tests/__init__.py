@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Tests for the shopware_rest_client module.
+Tests for the swapi module.
 
 http://pytest.org/latest/getting-started.html
 http://pytest.org/latest/goodpractises.html
