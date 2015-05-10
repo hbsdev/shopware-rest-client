@@ -6,7 +6,7 @@
 # Packages
 *.egg
 *.egg-info
-# dist # we want the zip files on githubg
+# dist # we want the distribution zip files to appear on github
 build
 eggs
 parts
@@ -25,7 +25,8 @@ secret
 pyvenv.cfg
 ./tmp/
 
-# Installer logs
+# Log files
+log
 pip-log.txt
 
 # Unit test / coverage reports
@@ -40,6 +41,10 @@ htmlcov
 # PyCharm
 .idea
 
+# Wing IDE
+wing.wpu
+wing.wpr
+
 # Mr Developer
 .mr.developer.cfg
 .project
@@ -51,4 +56,3 @@ output/*/index.html
 
 # Sphinx
 docs/_build
-

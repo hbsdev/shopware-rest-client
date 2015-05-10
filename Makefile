@@ -35,7 +35,7 @@ clean-test:
 	rm -fr htmlcov/
 
 lint:
-	flake8 shopware-rest-client tests
+	flake8 swapi tests
 
 test:
 	python setup.py test
@@ -44,15 +44,15 @@ test-all:
 	tox
 
 coverage:
-	coverage run --source shopware-rest-client setup.py test
+	coverage run --source swapi setup.py test
 	coverage report -m
 	coverage html
 	open htmlcov/index.html
 
 docs:
-	rm -f docs/shopware-rest-client.rst
+	rm -f docs/swapi.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ shopware-rest-client
+	sphinx-apidoc -o docs/ swapi
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	open docs/_build/html/index.html

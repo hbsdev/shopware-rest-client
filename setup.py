@@ -53,13 +53,13 @@ setup(
         'shopware_rest_client',
     ],
     package_dir={'shopware_rest_client':
-                 'shopware_rest_client'},
+                 'swapi'},
     include_package_data=True,
     install_requires=requirements,
     license="Apache 2.0",
     zip_safe=False,
     keywords='shopware_rest_client',
-    classifiers=[
+    classifiers=[ # https://pypi.python.org/pypi?%3Aaction=list_classifiers
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
         'License :: Apache 2.0  License',
@@ -67,6 +67,13 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Operating System :: Unix',
+        'Operating System :: MacOS X',   # Classifier not officiall
+        'Operating System :: POSIX',
+        'Operating System :: POSIX :: BSD',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: POSIX :: Other',
+        'Operating System :: POSIX :: SunOS/Solaris',
     ],
 
     # (pytest B) from https://pytest.org/latest/goodpractises.html#integrating-with-distutils-python-setup-py-test
