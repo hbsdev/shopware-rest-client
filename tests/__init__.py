@@ -10,4 +10,3 @@ http://pytest.org/latest/example/index.html
 Pytest’s powerful fixture mechanism which leverages the concept of dependency injection:
 http://pytest.org/latest/fixture.html#fixture
 """
-

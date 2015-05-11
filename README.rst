@@ -23,39 +23,11 @@ Test Configuration
 ------------------
 
 For integration tests a working Shopware 4 installation is required, which
-may not be in production. The following environment variables need to be set:
-
-* SW_API_SERVER (e.g. SW_API_SERVER=http://example.com)
-* SW_API_USER
-* SW_API_KEY
-
-Run a single test
------------------
-
-Specify fileName.py::className, like so:
-
-    py.test -q -s test_fixtures.py::TestSkip
-
-Paste the file::test information from pytest's console output.
+may not be in production. For configuration create a file ./secret -
+see ./secret-example
 
 
-Calling pytest through python
------------------------------
+Some ways to invoke pytest
+--------------------------
 
-    python -m pytest ...
-
-This is equivalent to invoking the command line script py.test ... directly.
-
-
-Stopping pytest after the first failure
----------------------------------------
-
-    py.test -x
-
-Todo
-----
-
-* Add logging
-
-
-
+https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a
