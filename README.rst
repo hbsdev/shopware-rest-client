@@ -22,8 +22,9 @@ Install latest release
 Test Configuration
 ------------------
 
-For integration tests a working Shopware 4 installation is required, which
-may not be in production. For configuration create a file ./secret -
+For integration tests a working Shopware 4 installation is required, which may not be in production.
+It is necessary to create at least one supplier manually from the backend before running the tests.
+For configuration create a file ./secret -
 see ./secret-example
 
 

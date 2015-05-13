@@ -2,7 +2,7 @@
 
 from tests.fixtures.auth import read_conf
 
-def test_articles(read_conf):
+def test_articles_get(read_conf):
   import swapi
   r = swapi.get(read_conf,"articles")
   assert str(r) == "<Response [200]>"
