@@ -9,6 +9,7 @@
 # dist # we want the distribution zip files to appear on github
 build
 eggs
+src
 parts
 bin
 var
@@ -19,7 +20,7 @@ lib
 lib64
 
 # CONFIG
-secret
+secret*
 
 # VENV
 pyvenv.cfg
@@ -59,4 +60,3 @@ docs/_build
 
 dev.py
 dev
-secret12
