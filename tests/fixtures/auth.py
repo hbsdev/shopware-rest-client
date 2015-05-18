@@ -2,6 +2,7 @@
 
 import pytest
 
+
 @pytest.fixture
 def read_conf():
   import os

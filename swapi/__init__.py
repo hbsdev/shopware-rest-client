@@ -4,74 +4,88 @@ __author__ = 'Kurt Miebach'
 __email__ = 'kwmiebach@gmail.com'
 __version__ = '0.1.0'
 
+import swapi.log
+LOG = swapi.log.create()
 
-def _get_swapi_log():
-  import easylog
+def get(ctx, coll, suffix=""):
+  # next_action, exception, message, result = handle_context(ctx)
+  #if next_action == "return"
+  #  return result
+  #if next_action == "exception"
+  #  raise
+  import swapi.http
 
-  # 1) If a SWAPI logger was configured already, use that one:
-  log = easylog.get("SWAPI")
-  if log is not None:
-    return log
-
-  #2) Should we log to a file? Look at environment:
-  import os
-  logfile = os.environ.get('SWAPI_LOGFILE',default=None)
-  if logfile is not None:
-    log = easylog.create("SWAPI",level="DEBUG",path=logfile)
-    return log
-
-  #3) default is a null logger whcih does nothing to not confuse development of the main application
-  # see https://docs.python.org/3/howto/logging.html#configuring-logging-for-a-library >
-  log = easylog.create("SWAPI",level="WARNING")
-  return log
-
-LOG=_get_swapi_log()
-
-def construct_auth(conf):
-  proto, server, basepath, user, key = conf
-  import requests.auth
-  auth=requests.auth.HTTPDigestAuth(user, key)
-  return auth
-
-def construct_url(conf,coll):
-  """
-  >>> conf = ("http","example.com", "/subshop/", "api", "key123key")
-  >>> construct_url(conf,"articles")
-  'http://example.com/subshop/api/articles'
-
-  >>> conf = ("https","example.com", "/", "api", "key123key")
-  >>> construct_url(conf,"orders")
-  'https://example.com/api/orders'
-
-  """
-  proto, server, basepath, user, key = conf
-  url = '%s://%s%sapi/%s' % (proto,server,basepath, coll)
-  import swapi
-  swapi.LOG.debug("Url constructed: %s", url)
-  return url
-
-def get(conf,coll,suffix = ""):
-  url = "%s%s" % (construct_url(conf,coll), suffix)
-  global LOG # use LOG from the module namespace
-  import swapi
+  conf = ctx["conf"]
+  url = "%s%s" % (swapi.http.construct_url(conf, coll), suffix)
+  global LOG  # use LOG from the module namespace
   swapi.LOG.debug("Auth user: %s", conf[3])
-  auth = construct_auth(conf)
+  auth = swapi.http.construct_auth(conf)
   import requests
-  r = requests.get(
-    url = url,
-    auth = auth,
-  )
-  if str(r) != "<Response [200]>":
-    swapi.LOG.warning("Response of GET request: %s" % str(r))
-  else:
-    swapi.LOG.debug("Response of GET request: %s" % str(r))
-  return r
+  import swapi.http
+  last_i = ctx["retry"]["retries"] + 1
+  assert last_i > 0
+  for i in range(0, last_i):
+    import requests.exceptions
+    try:
+      r = swapi.http.rest_call(
+        method = "GET",
+        url = url,
+        auth = auth,
+        fake_error = ctx["fake_error"],
+      )
 
-def post(conf,coll,payload,suffix = ""):
-  url = "%s%s" % (construct_url(conf,coll), suffix)
+      # All exceptions that the python Requests library 
+      # explicitly raises inherit from:
+      # requests.exceptions.RequestException
+    except requests.exceptions.RequestException as e:
+      # in case we are unit testing:
+      ctx["fake_error"] = swapi.http.next_error(ctx["fake_error"])
+      import traceback
+      tb = traceback.format_exc()
+      LOG.error("RequestException exception: %s" % tb)
+      # are we out of retries?
+      if i >= ctx["retry"]["retries"]:
+        # then re-raise it!
+        raise
+    except OSError as e:  # all IO Errors are catched here
+      # in case we are unit testing:
+      ctx["fake_error"] = swapi.http.next_error(ctx["fake_error"])
+      import traceback
+      tb = traceback.format_exc()
+      LOG.error("OSError exception: %s" % tb)
+      # are we out of retries?
+      if i >= ctx["retry"]["retries"]:
+        # then re-raise it!
+        raise
+    except Exception:
+      import traceback
+      tb = traceback.format_exc()
+      LOG.error("Unexpected exception: %s" % tb)
+      # we need to re-raise it!
+      raise
+    else:  # no exception
+      break  # if it worked, exit the loop now
+
+  rdict = r.json()
+  if str(r) == "<Response [200]>":
+    swapi.LOG.debug("Response of GET request: %s" % str(r))
+    data = rdict.get("data", {})
+    info = data
+    return True, r, info
+  else:
+    swapi.LOG.warning("Response of GET request: %s" % str(r))
+    message = rdict.get("message", None)
+    info = message
+    return False, r, info
+
+
+def post(ctx, coll, payload, suffix=""):
+  conf = ctx["conf"]
+  import swapi.http
+  url = "%s%s" % (swapi.http.construct_url(conf, coll), suffix)
   import swapi
   swapi.LOG.debug("Auth user: %s", conf[3])
-  auth = construct_auth(conf)
+  auth = swapi.http.construct_auth(conf)
   import json
   data_json_string = json.dumps(payload)
   import requests
@@ -85,7 +99,7 @@ def post(conf,coll,payload,suffix = ""):
   # ODER:
   # {'message': 'Errormesage: An exception occurred while executing \
   # 'INSERT INTO s_articles_details (articleID, unitID, ordernumber, suppliernumber, kind, additionaltext,
-  #  active, instock, stockmin, weight, width, length, height, ean, position, minpurchase, purchasesteps,
+  # active, instock, stockmin, weight, width, length, height, ean, position, minpurchase, purchasesteps,
   # maxpurchase, purchaseunit, referenceunit, packunit, shippingfree, releasedate, shippingtime) VALUES
   # (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\
   # ' with params [4, null, "SW456221", null, 1, null, false, null, null, null, null, null, null,
@@ -98,14 +112,43 @@ def post(conf,coll,payload,suffix = ""):
   else:
     swapi.LOG.debug("Response of POST request: %s" % str(r))
   if rdict.get("success", False):
-    data = rdict.get("data",{})
+    data = rdict.get("data", {})
     id = data.get("id", None)
     info = id
     swapi.LOG.debug("ID from POST response: %s" % info)
-    return True, r , info
+    return True, r, info
   else:
-    message = rdict.get("message",None)
+    message = rdict.get("message", None)
     info = message
     swapi.LOG.warning("Message from POST response: %s" % info)
-    return False, r , info
+    return False, r, info
 
+
+def dodelete(ctx, coll, suffix=""):
+  conf = ctx["conf"]
+  import swapi.http
+  url = "%s%s" % (swapi.http.construct_url(conf, coll), suffix)
+  import swapi
+  swapi.LOG.debug("Auth user: %s", conf[3])
+  auth = swapi.http.construct_auth(conf)
+  import requests
+  r = requests.delete(
+    url = url,
+    auth = auth,
+  )
+  rdict = r.json()
+  if (str(r) != "<Response [200]>") and (str(r) != "<Response [201]>"):
+    swapi.LOG.warning("Response of DELETE request: %s" % str(r))
+  else:
+    swapi.LOG.debug("Response of DELETE request: %s" % str(r))
+  if rdict.get("success", False):
+    data = rdict.get("data", {})
+    id = data.get("id", None)
+    info = id
+    swapi.LOG.debug("ID from DELETE response: %s" % info)
+    return True, r, info
+  else:
+    message = rdict.get("message", None)
+    info = message
+    swapi.LOG.warning("Message from DELETE response: %s" % info)
+    return False, r, info

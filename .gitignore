@@ -42,9 +42,13 @@ htmlcov
 # PyCharm
 .idea
 
+# sublime text
+*.sublime-workspace
+*.sublime-project
+
 # Wing IDE
-wing.wpu
-wing.wpr
+*.wpu
+*.wpr
 
 # Mr Developer
 .mr.developer.cfg
@@ -58,5 +62,7 @@ output/*/index.html
 # Sphinx
 docs/_build
 
+# some local development scripts:
+doctest_runner.py
 dev.py
 dev
