@@ -1,6 +1,6 @@
 import requests.auth
-from swapi import LOG
-from swapi.exception import SwapiFakeIOError
+import swapi
+import swapi.error
 
 
 def construct_auth(conf):
@@ -29,16 +29,21 @@ def construct_url(conf, coll):
 
 
 def rest_call(method, url, auth, data=None, fake_error={}):
+  """
+  Make HTTP request, do not raise exceptions for http error codes yet.
+  Raises fake errors for unittests.
+  """
   # 1) Handle fails for unit tests first:
   fails_left = fake_error.get("fail_times", 0)
   if fails_left > 0:
     msg = "%s %s fails, %s fake errors left." % (
       method, url, fails_left - 1)
-    LOG.debug(msg)
+    swapi.LOG.debug(msg)
     # In most cases we fake IO related errors:
     fake_error_type = fake_error.get("type", "io")
     if fake_error_type == "io":
-      raise SwapiFakeIOError(msg)
+      msg = "%s - creating a fake error for the swapi library." % msg
+      raise swapi.error.SwapiFakeIOError(msg)
     elif fake_error_type == "requests":
       msg = "%s - creating a fake io error for the requests library." % msg
       import requests.exceptions
@@ -60,21 +65,23 @@ def rest_call(method, url, auth, data=None, fake_error={}):
       url = url,
       auth = auth,
     )
-  if method == "POST":
+  elif method == "POST":
     r = requests.delete(
       url = url,
       auth = auth,
     )
-  if method == "PUT":
+  elif method == "PUT":
     r = requests.delete(
       url = url,
       auth = auth,
     )
-  if method == "DELETE":
+  elif method == "DELETE":
     r = requests.delete(
       url = url,
       auth = auth,
     )
+  else:
+    raise Exception("Wrong method: %s" % method)
   return r
 
 def next_error(fake_error):

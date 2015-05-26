@@ -66,17 +66,20 @@ def get(ctx, coll, suffix=""):
     else:  # no exception
       break  # if it worked, exit the loop now
 
-  rdict = r.json()
-  if str(r) == "<Response [200]>":
-    swapi.LOG.debug("Response of GET request: %s" % str(r))
-    data = rdict.get("data", {})
-    info = data
-    return True, r, info
-  else:
-    swapi.LOG.warning("Response of GET request: %s" % str(r))
+  if str(r) != "<Response [200]>":
+    # we raise everything else here, also 404
+    try:
+      rdict = r.json()
+    except:
+      rdict = dict()
     message = rdict.get("message", None)
-    info = message
-    return False, r, info
+    swapi.LOG.debug("Response of GET request: %s, message: %s" % (str(r), message ))
+    r.raise_for_status()
+
+  swapi.LOG.debug("Response of GET request: %s" % str(r))
+  #rdict = r.json()
+  #data = rdict.get("data", {})
+  return r
 
 
 def post(ctx, coll, payload, suffix=""):
@@ -94,35 +97,33 @@ def post(ctx, coll, payload, suffix=""):
     auth = auth,
     data = data_json_string,
   )
-  rdict = r.json()
-  # {"success":true,"data":{"id":2,"location":"http:\/\/sw-travis.vhost99.com\/api\/articles\/2"}}
-  # ODER:
-  # {'message': 'Errormesage: An exception occurred while executing \
-  # 'INSERT INTO s_articles_details (articleID, unitID, ordernumber, suppliernumber, kind, additionaltext,
-  # active, instock, stockmin, weight, width, length, height, ean, position, minpurchase, purchasesteps,
-  # maxpurchase, purchaseunit, referenceunit, packunit, shippingfree, releasedate, shippingtime) VALUES
-  # (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\
-  # ' with params [4, null, "SW456221", null, 1, null, false, null, null, null, null, null, null,
-  # null, 0, null, null, null, null, null, null, 0, null, null]:\n\n
-  # SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry \'SW456221\' for key
-  # \'ordernumber\'', 'success': False}
-  if (str(r) != "<Response [200]>") and (str(r) != "<Response [201]>"):
+  if (str(r) != "<Response [200]>") and ( 
+      str(r) != "<Response [201]>"):
     swapi.LOG.warning("Payload: %s" % payload)
     swapi.LOG.warning("Response of POST request: %s" % str(r))
-  else:
-    swapi.LOG.debug("Response of POST request: %s" % str(r))
-  if rdict.get("success", False):
-    data = rdict.get("data", {})
-    id = data.get("id", None)
-    info = id
-    swapi.LOG.debug("ID from POST response: %s" % info)
-    return True, r, info
-  else:
-    message = rdict.get("message", None)
-    info = message
-    swapi.LOG.warning("Message from POST response: %s" % info)
-    return False, r, info
+  
+  try:
+    rdict = r.json()
+  except Exception:
+    rdict = {}
 
+  swapi.LOG.debug("Response of POST request: %s" % str(r))
+
+  r.raise_for_status() # raises exception for bad response codes
+
+  #if rdict.get("success", False):
+  #  ok = True
+  #  data = rdict.get("data", {})
+  #  id = data.get("id", None)
+  #  info = id
+  #  swapi.LOG.debug("ID from POST response: %s" % info)
+  #else:
+  #  ok = False
+  #  message = rdict.get("message", None)
+  #  info = message
+  #  swapi.LOG.warning("Message from POST response: %s" % info)
+
+  return r
 
 def dodelete(ctx, coll, suffix=""):
   conf = ctx["conf"]
@@ -136,19 +137,22 @@ def dodelete(ctx, coll, suffix=""):
     url = url,
     auth = auth,
   )
-  rdict = r.json()
-  if (str(r) != "<Response [200]>") and (str(r) != "<Response [201]>"):
-    swapi.LOG.warning("Response of DELETE request: %s" % str(r))
-  else:
+  if (str(r) == "<Response [200]>") or (str(r) == "<Response [201]>"):
     swapi.LOG.debug("Response of DELETE request: %s" % str(r))
-  if rdict.get("success", False):
-    data = rdict.get("data", {})
-    id = data.get("id", None)
-    info = id
-    swapi.LOG.debug("ID from DELETE response: %s" % info)
-    return True, r, info
-  else:
-    message = rdict.get("message", None)
-    info = message
-    swapi.LOG.warning("Message from DELETE response: %s" % info)
-    return False, r, info
+    return r
+
+  swapi.LOG.warning("Response of DELETE request: %s" % str(r))
+  r.raise_for_status() # raises exception for bad response codes
+
+  #rdict = r.json()
+  #if rdict.get("success", False):
+  #  data = rdict.get("data", {})
+  #  id = data.get("id", None)
+  #  info = id
+  #  swapi.LOG.debug("ID from DELETE response: %s" % info)
+  #  return True, r, info
+  #else:
+  #  message = rdict.get("message", None)
+  #  info = message
+  #  swapi.LOG.warning("Message from DELETE response: %s" % info)
+  #  return False, r, info

@@ -4,7 +4,7 @@ def create(conf, retry=None, fake_error=None):
   """
   Examples:
     - Do not fail unless the third try goes also wrong: retries = 3
-    - wait delay_ms between eacht try
+    - wait delay_ms between each try
     - Succeed on the 3rd try: fails=2
 
   retry = dict(retries=2, delay_ms=1)

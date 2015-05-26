@@ -3,6 +3,5 @@ pytest==2.7.0
 requests==2.7.0
 # http://stackoverflow.com/questions/16584552/how-to-state-in-requirements-txt-a-direct-github-source
 git+https://github.com/hbsdev/easylog.git#egg=easylog
-git+https://github.com/ropez/pytest-describe.git#egg=pytest-describe
 doctest2==0.1
 pygments==2.0.2
