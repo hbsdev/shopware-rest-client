@@ -7,6 +7,61 @@ __version__ = '0.1.0'
 import swapi.log
 LOG = swapi.log.create()
 
+
+class NetRetry():
+  """
+  Handle Timeouts and Network errors.
+  usinh the "with" statement
+  http://effbot.org/zone/python-with-statement.htm
+  Also handle repetition, delay, pause, "give up"
+  Define a timeout probably globably
+  http://preshing.com/20110920/the-python-with-statement-by-example/
+  Re-raise: http://stackoverflow.com/a/18399069/1431660
+  """
+  def __init__(self, ctx, try_number):
+    self.ctx = ctx
+    self.try_number = try_number
+  def __enter__(self):
+    #self.ctx.save()
+    #return self.ctx
+    pass
+  def __exit__(self, etype, evalue, tb):
+    # All exceptions that the python Requests library 
+    # explicitly raises inherit from:
+    # requests.exceptions.RequestException
+    if evalue is None:
+      return True
+    import requests.exceptions
+    if isinstance (evalue, requests.exceptions.RequestException):
+      # in case we are unit testing:
+      self.ctx["fake_error"] = swapi.http.next_error(self.ctx["fake_error"])
+      LOG.error("RequestException exception: %s" % tb)
+      # are we out of retries?
+      if self.try_number >= self.ctx["retry"]["retries"]:
+        # then re-raise it!
+        return False
+      # The exception does not matter,
+      # because we are not out of retries yet:
+      return True
+    elif isinstance (evalue, OSError):
+      # all IO Errors are catched here
+      # in case we are unit testing:
+      self.ctx["fake_error"] = swapi.http.next_error(self.ctx["fake_error"])
+      LOG.error("OSError exception: %s" % tb)
+      # are we out of retries?
+      if self.try_number >= self.ctx["retry"]["retries"]:
+        # then re-raise it:
+        return False
+      # The exception does not matter,
+      # because we are not out of retries yet:
+      return True
+    elif isinstance (evalue, Exception):
+      # All other exceptions
+      LOG.error("Unexpected exception: %s" % tb)
+      # we need to re-raise it!
+      return False
+
+
 def get(ctx, coll, suffix=""):
   # next_action, exception, message, result = handle_context(ctx)
   #if next_action == "return"
@@ -20,65 +75,27 @@ def get(ctx, coll, suffix=""):
   global LOG  # use LOG from the module namespace
   swapi.LOG.debug("Auth user: %s", conf[3])
   auth = swapi.http.construct_auth(conf)
-  import requests
-  import swapi.http
   last_i = ctx["retry"]["retries"] + 1
   assert last_i > 0
-  for i in range(0, last_i):
-    import requests.exceptions
-    try:
+  for try_number in range(0, last_i):
+    rest_call_ok = False
+    with NetRetry(ctx, try_number):
       r = swapi.http.rest_call(
         method = "GET",
         url = url,
         auth = auth,
         fake_error = ctx["fake_error"],
-      )
+        )
+      # If we get here, then there was no exception:
+      rest_call_ok = True
+    # We are still in the loop.
+    # but if the rest call worked,
+    # we must exit the loop now:
+    if rest_call_ok:
+      break
 
-      # All exceptions that the python Requests library 
-      # explicitly raises inherit from:
-      # requests.exceptions.RequestException
-    except requests.exceptions.RequestException as e:
-      # in case we are unit testing:
-      ctx["fake_error"] = swapi.http.next_error(ctx["fake_error"])
-      import traceback
-      tb = traceback.format_exc()
-      LOG.error("RequestException exception: %s" % tb)
-      # are we out of retries?
-      if i >= ctx["retry"]["retries"]:
-        # then re-raise it!
-        raise
-    except OSError as e:  # all IO Errors are catched here
-      # in case we are unit testing:
-      ctx["fake_error"] = swapi.http.next_error(ctx["fake_error"])
-      import traceback
-      tb = traceback.format_exc()
-      LOG.error("OSError exception: %s" % tb)
-      # are we out of retries?
-      if i >= ctx["retry"]["retries"]:
-        # then re-raise it!
-        raise
-    except Exception:
-      import traceback
-      tb = traceback.format_exc()
-      LOG.error("Unexpected exception: %s" % tb)
-      # we need to re-raise it!
-      raise
-    else:  # no exception
-      break  # if it worked, exit the loop now
-
-  if str(r) != "<Response [200]>":
-    # we raise everything else here, also 404
-    try:
-      rdict = r.json()
-    except:
-      rdict = dict()
-    message = rdict.get("message", None)
-    swapi.LOG.debug("Response of GET request: %s, message: %s" % (str(r), message ))
-    r.raise_for_status()
-
-  swapi.LOG.debug("Response of GET request: %s" % str(r))
-  #rdict = r.json()
-  #data = rdict.get("data", {})
+  # we raise everything else here, also 404
+  r.raise_for_status()
   return r
 
 
@@ -91,23 +108,27 @@ def post(ctx, coll, payload, suffix=""):
   auth = swapi.http.construct_auth(conf)
   import json
   data_json_string = json.dumps(payload)
-  import requests
-  r = requests.post(
-    url = url,
-    auth = auth,
-    data = data_json_string,
-  )
-  if (str(r) != "<Response [200]>") and ( 
-      str(r) != "<Response [201]>"):
-    swapi.LOG.warning("Payload: %s" % payload)
-    swapi.LOG.warning("Response of POST request: %s" % str(r))
-  
-  try:
-    rdict = r.json()
-  except Exception:
-    rdict = {}
 
-  swapi.LOG.debug("Response of POST request: %s" % str(r))
+  last_i = ctx["retry"]["retries"] + 1
+  assert last_i > 0
+  for try_number in range(0, last_i):
+    rest_call_ok = False
+    with NetRetry(ctx, try_number):
+      swapi.LOG.debug("POST: %s data: %s" % (url, data_json_string))
+      r = swapi.http.rest_call(
+        method = "POST",
+        url = url,
+        auth = auth,
+        data = data_json_string,
+        fake_error = ctx["fake_error"],
+        )
+      # If we get here, then there was no exception:
+      rest_call_ok = True
+    # We are still in the loop.
+    # but if the rest call worked, we must
+    # exit the loop now:
+    if rest_call_ok:
+      break
 
   r.raise_for_status() # raises exception for bad response codes
 

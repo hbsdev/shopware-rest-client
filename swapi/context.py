@@ -10,6 +10,28 @@ def create(conf, retry=None, fake_error=None):
   retry = dict(retries=2, delay_ms=1)
   fake_error = dict(fails=3)
   ctx = swapi.context(conf)
+
+  Check for 3 default retries:
+ 
+  >>> ctx = create(dict())
+  >>> ctx["retry"]["retries"]
+  3
+
+  Overriding retries:
+
+  >>> ctx = create(dict(), dict(retries=2))
+  >>> ctx["retry"]["retries"]
+  2
+
+  Overriding ms, checking also for default retries:
+
+  >>> ctx = create(dict(), dict(delay_ms=30000))
+  >>> ctx["retry"]["delay_ms"]
+  30000
+
+  >>> ctx["retry"]["retries"]
+  3
+
   """
   res = dict(
     conf = conf,

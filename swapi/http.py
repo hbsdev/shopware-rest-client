@@ -66,14 +66,16 @@ def rest_call(method, url, auth, data=None, fake_error={}):
       auth = auth,
     )
   elif method == "POST":
-    r = requests.delete(
+    r = requests.post(
       url = url,
       auth = auth,
+      data = data,
     )
   elif method == "PUT":
-    r = requests.delete(
+    r = requests.put(
       url = url,
       auth = auth,
+      data = data,
     )
   elif method == "DELETE":
     r = requests.delete(
@@ -82,9 +84,39 @@ def rest_call(method, url, auth, data=None, fake_error={}):
     )
   else:
     raise Exception("Wrong method: %s" % method)
+  swapi.LOG.debug("%s response: %s" % (method, str(r)))
+
+  try:
+    rdict = r.json()
+  except:
+    rdict = dict()
+  def debug_json(key,d):
+    val = d.get(key, None)    
+    if val is not None:
+      swapi.LOG.debug("JSON field '%s' from %s answer was %s" % (
+        key, method, val ))
+  debug_json("success", rdict)
+  debug_json("message", rdict)
+  debug_json("data", rdict)
+  debug_json("errors", rdict)
   return r
 
 def next_error(fake_error):
+  """
+  >>> next_error(dict())
+  {}
+
+  >>> next_error(dict(fail_times=2))
+  {'fail_times': 1}
+  
+  >>> next_error(dict(fail_times=1))
+  {'fail_times': 0}
+  
+  # Does this make sense? Does it ever happen?
+
+  >>> next_error(dict(fail_times=0))
+  {'fail_times': -1}
+  """
   # helper function for unittests
   if fake_error.get("fail_times", None) is None:
     # fail_times is not set, do nothing:

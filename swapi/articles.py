@@ -3,7 +3,7 @@ import easylog
 
 LOG = easylog.get("SWAPI")
 
-# siehe php siganturen !
+# siehe php signaturen !
 
 def get(ctx, suffix=""):
   import swapi
@@ -17,6 +17,10 @@ def get_by_number(ctx, number):
   # raises requests.exceptions.HTTPError if not found:
   return get(ctx, "/%s?useNumberAsId=true" % number)
 
+def post(ctx, payload, suffix=""):
+  import swapi
+  return swapi.post(ctx, "articles", payload, suffix = suffix)
+
 def id_for(ctx, number):
   r = get_by_number(ctx, number)
   data = r.json()
@@ -25,12 +29,6 @@ def id_for(ctx, number):
   return id
 
 def exists(ctx, number):
-  # How Do we handle Timeouts and Network errors? 
-  # Not just only here, but this is a good example.
-  # --> use the "with" statement http://effbot.org/zone/python-with-statement.htm
-  # and define a timeout probably globably
-  # - should also handly repetition, delay, pause, "give up"
-  # to handle network
   import requests.exceptions
   try:
     r = get_by_number(ctx, number)

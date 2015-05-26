@@ -3,6 +3,11 @@
 # Todo: Console and file logging needs some functional tests
 
 def create():
+
+  #DEFAULT_LEVEL = "WARNING"
+  DEFAULT_LEVEL = "DEBUG"
+  #DEFAULT_LEVEL = "ERROR"
+
   # 1) If a SWAPI logger was configured already, use that one:
   import easylog
   log = easylog.get("SWAPI")
@@ -20,5 +25,5 @@ def create():
   #3) default is a standard WARNING level logger.
   # This should be the right thing for users of this library, see
   # see https://docs.python.org/3/howto/logging.html#configuring-logging-for-a-library >
-  log = easylog.create("SWAPI", level = "WARNING")
+  log = easylog.create("SWAPI", level = DEFAULT_LEVEL)
   return log
