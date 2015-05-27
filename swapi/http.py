@@ -4,7 +4,7 @@ import swapi.error
 
 
 def construct_auth(conf):
-  proto, server, basepath, user, key = conf
+  proto, server, basepath, user, key, use_query_plugin = conf
   import requests.auth
   auth = requests.auth.HTTPDigestAuth(user, key)
   return auth
@@ -12,23 +12,23 @@ def construct_auth(conf):
 
 def construct_url(conf, coll):
   """
-  >>> conf = ("http","example.com", "/subshop/", "api", "key123key")
+  >>> conf = ("http","example.com", "/subshop/", "api", "key123key", 0)
   >>> construct_url(conf,"articles")
   'http://example.com/subshop/api/articles'
 
-  >>> conf = ("https","example.com", "/", "api", "key123key")
+  >>> conf = ("https","example.com", "/", "api", "key123key", 0)
   >>> construct_url(conf,"orders")
   'https://example.com/api/orders'
 
   """
-  proto, server, basepath, user, key = conf
+  proto, server, basepath, user, key, use_query_plugin = conf
   url = '%s://%s%sapi/%s' % (proto, server, basepath, coll)
   import swapi
-  swapi.LOG.debug("Url constructed: %s", url)
+  swapi.LOG.debug("Url constructed: %s" % url)
   return url
 
 
-def rest_call(method, url, auth, data=None, fake_error={}):
+def rest_call(ctx, method, url, auth, data=None, fake_error={}):
   """
   Make HTTP request, do not raise exceptions for http error codes yet.
   Raises fake errors for unittests.
@@ -59,6 +59,13 @@ def rest_call(method, url, auth, data=None, fake_error={}):
       raise ArithmeticError(msg)
 
   # 2) Regular code starts here:
+
+  ctx["json1"] = dict(
+    url=url,
+    auth=auth,
+    data=data,
+  )
+
   import requests
   if method == "GET":
     r = requests.get(
@@ -85,11 +92,11 @@ def rest_call(method, url, auth, data=None, fake_error={}):
   else:
     raise Exception("Wrong method: %s" % method)
   swapi.LOG.debug("%s response: %s" % (method, str(r)))
-
   try:
     rdict = r.json()
   except:
     rdict = dict()
+  ctx["json"] = rdict # in case of exception query this dict!
   def debug_json(key,d):
     val = d.get(key, None)    
     if val is not None:
@@ -99,6 +106,7 @@ def rest_call(method, url, auth, data=None, fake_error={}):
   debug_json("message", rdict)
   debug_json("data", rdict)
   debug_json("errors", rdict)
+
   return r
 
 def next_error(fake_error):

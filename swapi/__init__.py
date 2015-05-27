@@ -7,6 +7,14 @@ __version__ = '0.1.0'
 import swapi.log
 LOG = swapi.log.create()
 
+def debuginfo(ctx, print=False):
+  if print:
+    print(ctx["json1"])
+    print(ctx["json"])
+  return dict(
+    json1 = ctx["json1"],
+    json = ctx["json"],
+    )
 
 class NetRetry():
   """
@@ -61,8 +69,7 @@ class NetRetry():
       # we need to re-raise it!
       return False
 
-
-def get(ctx, coll, suffix=""):
+def get(ctx, coll, suffix="", raise_for=False):
   # next_action, exception, message, result = handle_context(ctx)
   #if next_action == "return"
   #  return result
@@ -81,6 +88,7 @@ def get(ctx, coll, suffix=""):
     rest_call_ok = False
     with NetRetry(ctx, try_number):
       r = swapi.http.rest_call(
+        ctx = ctx,
         method = "GET",
         url = url,
         auth = auth,
@@ -95,11 +103,13 @@ def get(ctx, coll, suffix=""):
       break
 
   # we raise everything else here, also 404
-  r.raise_for_status()
+  if raise_for:
+    r.raise_for_status()
+
   return r
 
 
-def post(ctx, coll, payload, suffix=""):
+def post(ctx, coll, payload, suffix="", raise_for=True):
   conf = ctx["conf"]
   import swapi.http
   url = "%s%s" % (swapi.http.construct_url(conf, coll), suffix)
@@ -116,6 +126,7 @@ def post(ctx, coll, payload, suffix=""):
     with NetRetry(ctx, try_number):
       swapi.LOG.debug("POST: %s data: %s" % (url, data_json_string))
       r = swapi.http.rest_call(
+        ctx = ctx,
         method = "POST",
         url = url,
         auth = auth,
@@ -130,7 +141,8 @@ def post(ctx, coll, payload, suffix=""):
     if rest_call_ok:
       break
 
-  r.raise_for_status() # raises exception for bad response codes
+  if raise_for:
+    r.raise_for_status() # raises exception for bad response codes
 
   #if rdict.get("success", False):
   #  ok = True
@@ -146,7 +158,45 @@ def post(ctx, coll, payload, suffix=""):
 
   return r
 
-def dodelete(ctx, coll, suffix=""):
+def put(ctx, coll, payload, suffix="", raise_for=False):
+  conf = ctx["conf"]
+  import swapi.http
+  url = "%s%s" % (swapi.http.construct_url(conf, coll), suffix)
+  import swapi
+  swapi.LOG.debug("Auth user: %s", conf[3])
+  auth = swapi.http.construct_auth(conf)
+  import json
+  data_json_string = json.dumps(payload)
+
+  last_i = ctx["retry"]["retries"] + 1
+  assert last_i > 0
+  for try_number in range(0, last_i):
+    rest_call_ok = False
+    with NetRetry(ctx, try_number):
+      swapi.LOG.debug("PUT: %s data: %s" % (url, data_json_string))
+      r = swapi.http.rest_call(
+        ctx = ctx,
+        method = "PUT",
+        url = url,
+        auth = auth,
+        data = data_json_string,
+        fake_error = ctx["fake_error"],
+        )
+      # If we get here, then there was no exception:
+      rest_call_ok = True
+    # We are still in the loop.
+    # but if the rest call worked, we must
+    # exit the loop now:
+    if rest_call_ok:
+      break
+
+  if raise_for:
+    r.raise_for_status() # raises exception for bad response codes
+
+  return r
+
+
+def dodelete(ctx, coll, suffix="", raise_for=False):
   conf = ctx["conf"]
   import swapi.http
   url = "%s%s" % (swapi.http.construct_url(conf, coll), suffix)
@@ -163,7 +213,9 @@ def dodelete(ctx, coll, suffix=""):
     return r
 
   swapi.LOG.warning("Response of DELETE request: %s" % str(r))
-  r.raise_for_status() # raises exception for bad response codes
+
+  if raise_for:
+    r.raise_for_status() # raises exception for bad response codes
 
   #rdict = r.json()
   #if rdict.get("success", False):

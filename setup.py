@@ -44,7 +44,7 @@ class PyTest(Command):
 
 setup(
   name = 'shopware_rest_client',
-  version = '0.1.0',
+  version = '0.2.0',
   description = "Python 3 client library for Shopware 4 REST API",
   long_description = readme + '\n\n' + history,
   author = "Kurt Miebach",
@@ -61,7 +61,7 @@ setup(
   zip_safe = False,
   keywords = 'shopware api rest client swapi',
   classifiers = [  # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    'Development Status :: 2 - Pre-Alpha',
+    'Development Status :: 3 - Alpha',
     'Intended Audience :: Developers',
     'License :: Apache 2.0  License',
     'Natural Language :: English',

@@ -1,3 +1,9 @@
+class SwapiParameterError(Exception):
+  pass
+
+class SwapiDataStructurError(Exception):
+  pass
+  
 class SwapiFakeIOError(OSError):
   pass
   """

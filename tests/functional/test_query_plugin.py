@@ -2,48 +2,18 @@
 
 from tests.fixtures.auth import read_conf
 
-def test_not_exists(read_conf):
+def test_create_query_delete(read_conf):
 
-  number = "A0001"
-
-  # Create API context:
-  import swapi.context
-  ctx = swapi.context.create(read_conf)
-
-  # Delete and forgive if not existed:
-  import swapi.articles
-  r = swapi.articles.dodelete_by_number(ctx, number, forgive = True)
-
-  # Article should not exist now:
-  assert swapi.articles.exists(ctx, number) == False
-
-def test_delete_not_existing(read_conf):
-
-  number = "A0001"
-
-  # Create API context:
-  import swapi.context
-  ctx = swapi.context.create(read_conf)
-
-  # Delete and forgive if not existed:
-  import swapi.articles
-  r = swapi.articles.dodelete_by_number(ctx, number, forgive = True)
-
-  # Try to delete an article that's not there
-  # and DO NOT forgive, should raise 404:
- 
-  import pytest
-  import requests.exceptions
-  with pytest.raises(requests.exceptions.HTTPError) as einfo:
-    import swapi.articles
-    r = swapi.articles.dodelete_by_number(ctx, number, forgive = False)
-  assert '404 Client Error: Not Found' in str(einfo.value)
-
-
-def test_create_and_delete(read_conf):
+  use_query_plugin = read_conf[5]
+  if not use_query_plugin:
+    import pytest
+    pytest.skip("Query Plugin not installed on server")
 
   # Create article:
-  number = "A0001"
+  import random
+  a6 = "A%s" % random.randrange(10000,100000) # 10000 - 99999
+  a9 = "%s-10" % a6
+  number = a9
   import swapi.test_helpers
   ART = swapi.test_helpers.articles_testdata(number)
 
@@ -54,16 +24,25 @@ def test_create_and_delete(read_conf):
   r = swapi.post(ctx, "articles", ART)
   assert str(r) == '<Response [201]>'
 
-  # Make sure it exists:
+  # Get its id:
+  
+  import swapi.articles
+  id = swapi.articles.id_for(ctx, number)
+  assert id is not None
 
-  assert swapi.articles.exists(ctx, number)
+  # Now find it using the query resource:
 
-  # Delete it:
+  assert id == swapi.articles.id_for_startswith(ctx, a6)
 
   r = swapi.articles.dodelete_by_number(ctx, number, forgive = False)
   assert swapi.articles.exists(ctx, number) == False
 
 def test_ensure(read_conf):
+
+  use_query_plugin = read_conf[5]
+  if not use_query_plugin:
+    import pytest
+    pytest.skip("Query Plugin not installed on server")
 
   # Create article:
   number = "A0001"

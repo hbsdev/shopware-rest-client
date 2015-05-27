@@ -4,8 +4,8 @@
 
 def create():
 
-  #DEFAULT_LEVEL = "WARNING"
-  DEFAULT_LEVEL = "DEBUG"
+  DEFAULT_LEVEL = "WARNING"
+  #DEFAULT_LEVEL = "DEBUG"
   #DEFAULT_LEVEL = "ERROR"
 
   # 1) If a SWAPI logger was configured already, use that one:
