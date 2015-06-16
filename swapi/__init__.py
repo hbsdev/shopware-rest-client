@@ -81,6 +81,7 @@ def get(ctx, coll, suffix=""):
     rest_call_ok = False
     with NetRetry(ctx, try_number):
       r = swapi.http.rest_call(
+        ctx = ctx,
         method = "GET",
         url = url,
         auth = auth,
@@ -116,6 +117,7 @@ def post(ctx, coll, payload, suffix=""):
     with NetRetry(ctx, try_number):
       swapi.LOG.debug("POST: %s data: %s" % (url, data_json_string))
       r = swapi.http.rest_call(
+        ctx = ctx,
         method = "POST",
         url = url,
         auth = auth,
@@ -163,6 +165,7 @@ def put(ctx, coll, payload, suffix=""):
     with NetRetry(ctx, try_number):
       swapi.LOG.debug("PUT: %s data: %s" % (url, data_json_string))
       r = swapi.http.rest_call(
+        ctx = ctx,
         method = "PUT",
         url = url,
         auth = auth,
