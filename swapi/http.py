@@ -28,7 +28,7 @@ def construct_url(conf, coll):
   return url
 
 
-def rest_call(method, url, auth, data=None, fake_error={}):
+def rest_call(ctx, method, url, auth, data=None, fake_error={}):
   """
   Make HTTP request, do not raise exceptions for http error codes yet.
   Raises fake errors for unittests.
@@ -85,11 +85,11 @@ def rest_call(method, url, auth, data=None, fake_error={}):
   else:
     raise Exception("Wrong method: %s" % method)
   swapi.LOG.debug("%s response: %s" % (method, str(r)))
-
   try:
     rdict = r.json()
   except:
     rdict = dict()
+  ctx["json"] = rdict # in case of exception query this dict!
   def debug_json(key,d):
     val = d.get(key, None)    
     if val is not None:
@@ -99,6 +99,7 @@ def rest_call(method, url, auth, data=None, fake_error={}):
   debug_json("message", rdict)
   debug_json("data", rdict)
   debug_json("errors", rdict)
+
   return r
 
 def next_error(fake_error):
