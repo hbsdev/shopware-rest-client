@@ -61,8 +61,26 @@ def dodelete_by_number(ctx, art8):
 #  put_kind_by_number(ctx, art8_list[0], kind=1)
 
 
+def count_details(ctx, id):
+  """Count how many details exist"""
+  import swapi.articles
+  r = swapi.articles.get(ctx, id)
+  d = r.json()
+  try:
+    details = d["data"]["details"]
+  except KeyError:
+    return 0
+  return len(details)
+
+def is_variants_article(ctx, id):
+  """If details is empty or does not exist, this is a normal article.
+    If details holds at least one variant then this is a variant article."""
+  return count-details(ctx, id) == 0
+
+
 def count_variants(ctx, id):
-  """Count how many variants are defined"""
+  """Count how many variants are defined.
+    Result ist len of details + 1 because of mainDetails"""
   import swapi.articles
   r = swapi.articles.get(ctx, id)
   d = r.json()
@@ -71,6 +89,7 @@ def count_variants(ctx, id):
   except KeyError:
     return 0
   return len(details) + 1
+
 
 def numbers(ctx, id, active=True):
   """Return numbers of variants as a sorted list,

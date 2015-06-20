@@ -113,6 +113,21 @@ def dodelete_by_number(ctx, number, forgive=False):
     return None
   return dodelete(ctx, id)
 
+def get_mainDetail_number(ctx, id):
+  a = get(ctx, id)
+  data = a.json()
+  try:
+    variant = data["mainDetail"]["number"]
+  except KeyError:
+    return None
+
+def pprint(ctx, id):
+  """"""
+  r = get(ctx, id)
+  d = r.json()
+  import pprint
+  pprint.pprint(d)
+
 def article(
   number = None, # "A0012-34"
   active = None,
@@ -253,13 +268,46 @@ dict(
   )
 """
 
-def article_no_variants():
-  # Put this to an existing variants article and he should become
-  # a standard articl again:
+#def article_no_variants():
+#  # Put this to an existing variants article and he should become
+#  # a standard article again: (not tested)
+#  return dict(
+#    configuratorSet = None,
+#    variants = None,
+#    )
+
+
+
+def article_main_detail(detail_data):
+  """
+  GROUP_NAME = "Colour"
+  base="12345"
+
+  # (number, price, option, additionaltext)
+  DETAIL_DATA = (
+    "%s-11" % base, 199.90, 'Blau', 'S / Blau', ean, pzn, herstnr)
+  """
   return dict(
-    configuratorSet = None,
-    variants = None,
-    )
+    number = detail_data[0],
+    active = 1,
+    inStock = 10,
+    prices = [
+      dict(
+        customerGroupKey = 'EK',
+        price = detail_data[1],
+      ),
+    ],
+    configuratorOptions = [
+    ],
+    additionaltext = detail_data[3],
+    ean = detail_data[4],
+    attribute = dict(
+      attr1 = detail_data[5], #PZN
+      attr2 = detail_data[6], #Herstellernummer
+      dreiscSeoTitleReplace = detail_data[7],
+      dreiscSeoTitle = detail_data[8],
+    ),
+  )
 
 def article_variants(groupname, variant_data):
   """

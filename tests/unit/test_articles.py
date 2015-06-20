@@ -1,5 +1,19 @@
 # -*- coding: utf-8 -*-
 
+def test_articles_create_main_detail():
+  detail_data = (
+    "12345-01", 199.90, 'Blue', 'S / Blue', "12 123 1012", "124323.3", "XR-3434C", 1, "SEO Title")
+
+  import swapi.articles
+  a = swapi.articles.article_main_detail(detail_data)
+  assert a["number"] == "12345-01"
+  assert a["additionaltext"] == "S / Blue"
+  assert a["ean"] == "12 123 1012"
+  assert a["attribute"]["attr1"] == "124323.3"
+  assert a["attribute"]["attr2"] == "XR-3434C"
+  assert a["attribute"]["dreiscSeoTitleReplace"] == 1
+  assert a["attribute"]["dreiscSeoTitle"] == "SEO Title"
+
 def test_articles_create_new_demodata():
   import swapi.articles
   import pytest
