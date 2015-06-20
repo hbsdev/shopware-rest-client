@@ -115,7 +115,8 @@ def dodelete_by_number(ctx, number, forgive=False):
 
 def article(
   number = None, # "A0012-34"
-  price = None, # 12.34
+  active = None,
+  price = None, # 12.34 (incl. tax?!)
   name = None,
   metaTitle = None,
   keywords = None,
@@ -165,7 +166,7 @@ def article(
 
   r = dict()
 
-  active = True,
+  update_if(r, new_article, "active", active)
   update_if(r, new_article, "name", name)
   update_if(r, new_article, "metaTitle", metaTitle)
   update_if(r, new_article, "keywords", keywords)

@@ -7,9 +7,14 @@ __version__ = '0.1.0'
 import swapi.log
 LOG = swapi.log.create()
 
-def debuginfo(ctx):
-  print(ctx["json1"])
-  print(ctx["json"])
+def debuginfo(ctx, print=False):
+  if print:
+    print(ctx["json1"])
+    print(ctx["json"])
+  return dict(
+    json1 = ctx["json1"],
+    json = ctx["json"],
+    )
 
 class NetRetry():
   """
