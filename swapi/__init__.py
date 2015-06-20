@@ -7,6 +7,9 @@ __version__ = '0.1.0'
 import swapi.log
 LOG = swapi.log.create()
 
+def debuginfo(ctx):
+  print(ctx["json1"])
+  print(ctx["json"])
 
 class NetRetry():
   """
@@ -60,7 +63,6 @@ class NetRetry():
       LOG.error("Unexpected exception: %s" % tb)
       # we need to re-raise it!
       return False
-
 
 def get(ctx, coll, suffix=""):
   # next_action, exception, message, result = handle_context(ctx)

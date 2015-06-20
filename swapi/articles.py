@@ -19,6 +19,33 @@ def get_by_number(ctx, number):
   # raises requests.exceptions.HTTPError if not found:
   return get_raw(ctx, "/%s?useNumberAsId=true" % number)
 
+def id_for(ctx, number):
+  r = get_by_number(ctx, number)
+  data = r.json()
+  # data = {'success': True, 'data': {'tax': {'tax': '19.00', 'id': 1, 'name': '19%'}, 'categories': [], ...
+  id = data["data"]["id"]
+  return id
+
+def get_id(ctx, number):
+  import requests.exceptions
+  try:
+    r = get_by_number(ctx, number)
+  except requests.exceptions.HTTPError as e:
+    assert str(e) == "404 Client Error: Not Found"
+    return None
+  data = r.json()
+  id = data["data"]["id"]
+  return id
+
+def exists(ctx, number):
+  import requests.exceptions
+  try:
+    r = get_by_number(ctx, number)
+  except requests.exceptions.HTTPError as e:
+    assert str(e) == "404 Client Error: Not Found"
+    return False
+  return True
+
 def get_data_by_number(ctx, number):
   r = get_by_number(ctx, number)
   LOG.debug("GET TEXT: %s" % r.text)  
@@ -38,26 +65,33 @@ def put(ctx, id, payload):
   import swapi
   return swapi.put(ctx, "articles", payload, suffix = "/%s" % id)
 
+def ensure_by_number(ctx, payload):
+  number = payload["mainDetail"]["number"]
+  import requests.exceptions
+  try:
+    r = get_by_number(ctx, number)
+    found = True
+    print("FOUND!")
+  except requests.exceptions.HTTPError as e:
+    assert str(e) == "404 Client Error: Not Found"
+    # Does not yet exist:
+    found = False
+    print("NOT FOUND %s" % number)
+
+  if not found:
+
+    return post(ctx, payload)
+
+  # Already exists, overwrite:
+  data = r.json()
+  id = data["data"]["id"]
+  print (payload)
+  return put(ctx, id, payload)
+
 def put_by_number(ctx, number, payload):
   # Todo: put by number directly instead
   id = id_for(ctx, number)
   return put(ctx, id, payload)
-
-def id_for(ctx, number):
-  r = get_by_number(ctx, number)
-  data = r.json()
-  # data = {'success': True, 'data': {'tax': {'tax': '19.00', 'id': 1, 'name': '19%'}, 'categories': [], ...
-  id = data["data"]["id"]
-  return id
-
-def exists(ctx, number):
-  import requests.exceptions
-  try:
-    r = get_by_number(ctx, number)
-  except requests.exceptions.HTTPError as e:
-    assert str(e) == "404 Client Error: Not Found"
-    return False
-  return True
 
 def dodelete(ctx, id):
   # Artikelnummer = mainDetail.number
@@ -80,46 +114,107 @@ def dodelete_by_number(ctx, number, forgive=False):
   return dodelete(ctx, id)
 
 def article(
-  number, # "A0012-34"
-  price, # 12.34
-  name=None,
-  supplierId=None, supplier=None, # e.g. supplier="Supplier Inc."
-  taxId = None, tax=None, # e.g. tax=19.0
-  categories=[], # [12, 22]
-  customerGroupKey='EK',
-  more_data=dict(),
+  number = None, # "A0012-34"
+  price = None, # 12.34
+  name = None,
+  metaTitle = None,
+  keywords = None,
+  description = None,
+  descriptionLong = None,
+  supplierId = None, supplier = None, # e.g. supplier = "Supplier Inc."
+  taxId  =  None, tax = None, # e.g. tax = 19.0
+  categories = None, # [12, 22]
+  customerGroupKey = 'EK',
+  more_data = dict(),
+  update = False, # Update existing article, True only updates existing
+  insert_demodata = False,  
   ):
-  """Create a minimal article"""
+  """Create a minimal article. if update = True, only
+  the supplied values will be overwritten. Otherwise all "None"
+  values will be overwritten with Null Values"""
 
-  if name is None:
-    name = "Article %s" % number
+  
+  new_article = not update
+  if new_article:
+    if categories is None:
+      categories = []
 
-  r = dict(
-    name = name,
-    active = True,
-    tax = tax,
-    categories = categories,
-    mainDetail = dict(
-      number = number,
-      prices = [
-        dict(
-          customerGroupKey = customerGroupKey,
-          price = price,
-          ),
-      ]
+  if new_article:
+    if name is None:
+      if insert_demodata:
+        name = "Article %s" % number
+
+
+  def should_write(is_new, val):
+    """checks if attribut neds to be written or not.
+      For new object always write. For existing objects 
+      only overwrite, if a value is given. None means 'no value'"""
+    if is_new:
+      # new object, write data no matter what:
+      return True
+    # existing object:
+    if val is None:
+      # do not overwrite existing data if no new value given:
+      return False
+    # overwrite existing data with new value given:
+    return True
+
+  def update_if(d, is_new, key, val):
+    if should_write(is_new, val):
+      d[key] = val
+
+  r = dict()
+
+  active = True,
+  update_if(r, new_article, "name", name)
+  update_if(r, new_article, "metaTitle", metaTitle)
+  update_if(r, new_article, "keywords", keywords)
+  update_if(r, new_article, "description", description)
+  update_if(r, new_article, "descriptionLong", descriptionLong)
+  update_if(r, new_article, "tax", tax)
+  update_if(r, new_article, "categories", categories)
+  update_if(r, new_article, "name", name)
+
+  mainDetail = dict()
+
+  # mainDetail = dict(
+  #   number = number,
+  #   prices = [
+  #     dict(
+  #       customerGroupKey = customerGroupKey,
+  #       price = price,
+  #       ),
+  #   ]
+  #   ),
+  # )
+
+  update_if(mainDetail, new_article, "number", number)
+
+  if should_write(new_article, price):
+    mainDetail["prices"] = [
+      dict(
+        customerGroupKey = customerGroupKey,
+        price = price,
       ),
-    )
+    ]
+  
+  if mainDetail: # Empty dictionaries evaluate to False!
+    r["mainDetail"] = mainDetail
+
   if supplierId is None:
     if supplier is None:
-      r["supplier"] = 'Standard Supplier'
+      if new_article:
+        if insert_demodata:
+          r["supplier"] = 'Standard Supplier'
     else:
       r["supplier"] = supplier
   else:
-      r["supplierId"] = supplierId
+    r["supplierId"] = supplierId
 
   if taxId is None:
     if tax is None:
-      r["taxId"] = 1
+      if new_article:
+        r["taxId"] = 1
     else:
       r["tax"] = tax
   else:
@@ -157,6 +252,14 @@ dict(
   )
 """
 
+def article_no_variants():
+  # Put this to an existing variants article and he should become
+  # a standard articl again:
+  return dict(
+    configuratorSet = None,
+    variants = None,
+    )
+
 def article_variants(groupname, variant_data):
   """
   GROUP_NAME = "Colour"
@@ -164,9 +267,9 @@ def article_variants(groupname, variant_data):
 
   # (number, price, option, additionaltext)
   VARIANT_DATA = (
-    ("%s-11" % base, 199.90, 'Blau', 'S / Blau',),
-    ("%s-12" % base, 299.90, 'Rot', 'M / Rot',),
-    ("%s-13" % base, 399.90, 'Gelb', 'L / Gelb',),
+    ("%s-11" % base, 199.90, 'Blau', 'S / Blau', ean, pzn, herstnr),
+    ("%s-12" % base, 299.90, 'Rot', 'M / Rot', ean, pzn, herstnr),
+    ("%s-13" % base, 399.90, 'Gelb', 'L / Gelb', ean, pzn, herstnr),
     )
   """
   options = []
@@ -182,17 +285,24 @@ def article_variants(groupname, variant_data):
         dict(
           customerGroupKey = 'EK',
           price = v[1],
-          ),
-        ],
+        ),
+      ],
       configuratorOptions = [
         dict(
           group = groupname,
           option = v[2],
-          ),
-        ],
+        ),
+      ],
       additionaltext = v[3],
-      )
-    options.append(dict(name = v[2]))    
+      ean = v[4],
+      attribute = dict(
+        attr1 = v[5], #PZN
+        attr2 = v[6], #Herstellernummer
+        dreiscSeoTitleReplace = v[7],
+        dreiscSeoTitle = v[8],
+      ),
+    )
+    options.append(dict(name = v[2]))
     variants.append(d)
     # was only True for the first:
     isMain = False

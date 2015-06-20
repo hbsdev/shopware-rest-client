@@ -59,6 +59,13 @@ def rest_call(ctx, method, url, auth, data=None, fake_error={}):
       raise ArithmeticError(msg)
 
   # 2) Regular code starts here:
+
+  ctx["json1"] = dict(
+    url=url,
+    auth=auth,
+    data=data,
+  )
+
   import requests
   if method == "GET":
     r = requests.get(
