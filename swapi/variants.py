@@ -62,8 +62,9 @@ def dodelete_by_number(ctx, art8):
 
 
 def count_details(ctx, id):
-  """Count how many details exist"""
+  """Count how many details exist. Raises Not found error if id not found"""
   import swapi.articles
+  import requests.exceptions
   r = swapi.articles.get(ctx, id)
   d = r.json()
   try:
@@ -75,7 +76,8 @@ def count_details(ctx, id):
 def is_variants_article(ctx, id):
   """If details is empty or does not exist, this is a normal article.
     If details holds at least one variant then this is a variant article."""
-  return count-details(ctx, id) == 0
+  cd = count_details(ctx, id)
+  return cd > 0
 
 
 def count_variants(ctx, id):

@@ -115,11 +115,12 @@ def dodelete_by_number(ctx, number, forgive=False):
 
 def get_mainDetail_number(ctx, id):
   a = get(ctx, id)
-  data = a.json()
+  d = a.json()
   try:
-    variant = data["mainDetail"]["number"]
+    variant = d["data"]["mainDetail"]["number"]
   except KeyError:
-    return None
+    variant = None
+  return variant
 
 def pprint(ctx, id):
   """"""
@@ -277,16 +278,20 @@ dict(
 #    )
 
 
-
 def article_main_detail(detail_data):
   """
-  GROUP_NAME = "Colour"
-  base="12345"
-
-  # (number, price, option, additionaltext)
+  # (number, price, option, additionaltext, ...)
   DETAIL_DATA = (
-    "%s-11" % base, 199.90, 'Blau', 'S / Blau', ean, pzn, herstnr)
+    "12345-11", 199.90, 'blue', 'S / blue', ean, pzn, supplier_order_number)
   """
+  if len(detail_data) < 9:
+    import swapi.error
+    raise swapi.error.SwapiParameterError("Need at least article number and price (%s)" % detail_data)
+  
+  # Fill missing values with empty String
+  while len(detail_data) < 9:
+    detail_data.append("")
+
   return dict(
     number = detail_data[0],
     active = 1,
@@ -309,13 +314,13 @@ def article_main_detail(detail_data):
     ),
   )
 
-def article_variants(groupname, variant_data):
+def article_variants(groupname, variant_data_list):
   """
   GROUP_NAME = "Colour"
   base="12345"
 
   # (number, price, option, additionaltext)
-  VARIANT_DATA = (
+  VARIANT_DATA_LIST = (
     ("%s-11" % base, 199.90, 'Blau', 'S / Blau', ean, pzn, herstnr),
     ("%s-12" % base, 299.90, 'Rot', 'M / Rot', ean, pzn, herstnr),
     ("%s-13" % base, 399.90, 'Gelb', 'L / Gelb', ean, pzn, herstnr),
@@ -324,7 +329,7 @@ def article_variants(groupname, variant_data):
   options = []
   variants = []
   isMain = True # only for the first
-  for v in variant_data:
+  for v in variant_data_list:
     d = dict(
       isMain = isMain,
       number = v[0],
