@@ -138,13 +138,14 @@ def article(
   keywords = None,
   description = None,
   descriptionLong = None,
+  inStock = None,
   supplierId = None, supplier = None, # e.g. supplier = "Supplier Inc."
   taxId  =  None, tax = None, # e.g. tax = 19.0
   categories = None, # [12, 22]
   customerGroupKey = 'EK',
   more_data = dict(),
   update = False, # Update existing article, True only updates existing
-  insert_demodata = False,  
+  insert_demodata = False, 
   ):
   """Create a minimal article. if update = True, only
   the supplied values will be overwritten. Otherwise all "None"
@@ -206,6 +207,8 @@ def article(
   # )
 
   update_if(mainDetail, new_article, "number", number)
+  update_if(mainDetail, new_article, "inStock", inStock)
+
 
   if should_write(new_article, price):
     mainDetail["prices"] = [
@@ -278,11 +281,11 @@ dict(
 #    )
 
 
-def article_main_detail(detail_data):
+def article_main_detail(detail_data, inStock=50000):
   """
   # (number, price, option, additionaltext, ...)
   DETAIL_DATA = (
-    "12345-11", 199.90, 'blue', 'S / blue', ean, pzn, supplier_order_number)
+    "12345-11", 199.90, 'blue', 'S / blue', ean, pzn, supplier_order_number, tax)
   """
   if len(detail_data) < 9:
     import swapi.error
@@ -295,7 +298,7 @@ def article_main_detail(detail_data):
   return dict(
     number = detail_data[0],
     active = 1,
-    inStock = 10,
+    inStock = inStock,
     prices = [
       dict(
         customerGroupKey = 'EK',
@@ -314,7 +317,7 @@ def article_main_detail(detail_data):
     ),
   )
 
-def article_variants(groupname, variant_data_list):
+def article_variants(groupname, variant_data_list, inStock=50000):
   """
   GROUP_NAME = "Colour"
   base="12345"
@@ -334,7 +337,7 @@ def article_variants(groupname, variant_data_list):
       isMain = isMain,
       number = v[0],
       active = 1,
-      inStock = 10,
+      inStock = inStock,
       prices = [
         dict(
           customerGroupKey = 'EK',
