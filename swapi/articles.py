@@ -19,12 +19,33 @@ def get_by_number(ctx, number):
   # raises requests.exceptions.HTTPError if not found:
   return get_raw(ctx, "/%s?useNumberAsId=true" % number)
 
+def id_for_startswith(ctx, number_prefix):
+  """returns articleId of first found article who's ordernumber starts with number_prefix"""
+  # TODO: use proper url encoding function
+  q = "".join([
+    "SELECT+a+FROM+%5CShopware%5CModels%5CArticle%5CDetail+a+",
+    "WHERE+a.number+LIKE+%27",
+    number_prefix,
+    "%25", # %
+    "%27", # '
+  ])
+  import swapi.d_query
+  r = swapi.d_query.get(ctx, q)
+  data = r.json()
+  if not data["success"]:
+    return None
+  articleId = data["data"][0]["articleId"]
+  return articleId
+
+
 def id_for(ctx, number):
   r = get_by_number(ctx, number)
   data = r.json()
   # data = {'success': True, 'data': {'tax': {'tax': '19.00', 'id': 1, 'name': '19%'}, 'categories': [], ...
-  id = data["data"]["id"]
-  return id
+  if not data["success"]:
+    return None
+  articleId = data["data"]["id"]
+  return articleId
 
 def get_id(ctx, number):
   import requests.exceptions
@@ -34,8 +55,10 @@ def get_id(ctx, number):
     assert str(e) == "404 Client Error: Not Found"
     return None
   data = r.json()
-  id = data["data"]["id"]
-  return id
+  if not data["success"]:
+    return None
+  articleId = data["data"]["id"]
+  return articleId
 
 def exists(ctx, number):
   import requests.exceptions
@@ -44,12 +67,18 @@ def exists(ctx, number):
   except requests.exceptions.HTTPError as e:
     assert str(e) == "404 Client Error: Not Found"
     return False
+  data = r.json()
+  if not data["success"]:
+    return False
   return True
 
 def get_data_by_number(ctx, number):
   r = get_by_number(ctx, number)
   LOG.debug("GET TEXT: %s" % r.text)  
   json = r.json()
+  data = r.json()
+  if not data["success"]:
+    return None
   return json["data"]
 
 def post(ctx, payload, suffix=""):
@@ -113,11 +142,19 @@ def dodelete_by_number(ctx, number, forgive=False):
     return None
   return dodelete(ctx, id)
 
+def mainDetail_number(data):
+  try:
+    variant = data["mainDetail"]["number"]
+  except KeyError:
+    variant = None
+  return variant
+
 def get_mainDetail_number(ctx, id):
   a = get(ctx, id)
   d = a.json()
   try:
-    variant = d["data"]["mainDetail"]["number"]
+    data = d["data"] # can raise keyerror
+    variant = mainDetail_number(data) # can also raise keyerror
   except KeyError:
     variant = None
   return variant
@@ -164,7 +201,7 @@ def article(
 
 
   def should_write(is_new, val):
-    """checks if attribut neds to be written or not.
+    """checks if attribute needs to be written or not.
       For new object always write. For existing objects 
       only overwrite, if a value is given. None means 'no value'"""
     if is_new:
