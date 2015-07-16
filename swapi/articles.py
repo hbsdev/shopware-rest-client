@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-import easylog
 
+from pprint import pprint as pp
+
+import easylog
 LOG = easylog.get("SWAPI")
 
 # siehe php signaturen !
@@ -33,6 +35,8 @@ def id_for_startswith(ctx, number_prefix):
   r = swapi.d_query.get(ctx, q)
   data = r.json()
   if not data["success"]:
+    return None
+  if len(data["data"]) == 0:
     return None
   articleId = data["data"][0]["articleId"]
   return articleId
@@ -72,9 +76,28 @@ def exists(ctx, number):
     return False
   return True
 
+def get_data(ctx, id):
+  import requests.exceptions
+  try:
+    r = get(ctx, id)
+  except requests.exceptions.HTTPError as e:
+    assert str(e) == "404 Client Error: Not Found"
+    return None
+  #LOG.debug("GET TEXT: %s" % r.text)  
+  json = r.json()
+  data = r.json()
+  if not data["success"]:
+    return None
+  return json["data"]
+
 def get_data_by_number(ctx, number):
-  r = get_by_number(ctx, number)
-  LOG.debug("GET TEXT: %s" % r.text)  
+  import requests.exceptions
+  try:
+    r = get_by_number(ctx, number)
+  except requests.exceptions.HTTPError as e:
+    assert str(e) == "404 Client Error: Not Found"
+    return None
+  #LOG.debug("GET TEXT: %s" % r.text)  
   json = r.json()
   data = r.json()
   if not data["success"]:
@@ -91,6 +114,7 @@ def put(ctx, id, payload):
          'name' => 'New Article Name'
        ));
   """
+
   import swapi
   return swapi.put(ctx, "articles", payload, suffix = "/%s" % id)
 
@@ -318,9 +342,9 @@ dict(
 #    )
 
 
-def article_main_detail(detail_data, inStock=50000):
+def article_main_detail(detail_data, inStock=50000, as_active=True):
   """
-  # (number, price, option, additionaltext, ...)
+  # (number, price, option, additionalText, ...)
   DETAIL_DATA = (
     "12345-11", 199.90, 'blue', 'S / blue', ean, pzn, supplier_order_number, tax)
   """
@@ -332,9 +356,24 @@ def article_main_detail(detail_data, inStock=50000):
   while len(detail_data) < 9:
     detail_data.append("")
 
+  if as_active:
+    active = 1
+  else:
+    active = 0
+
+  # Grundpreise:
+  purchaseUnit = detail_data[9]
+  referenceUnit = detail_data[10]
+  unitId = detail_data[11]
+  if (purchaseUnit is None) or (referenceUnit is None) or (unitId is None):
+    # alle oder keins:
+    purchaseUnit = None
+    referenceUnit = None
+    unitId = None
+
   return dict(
     number = detail_data[0],
-    active = 1,
+    active = active,
     inStock = inStock,
     prices = [
       dict(
@@ -344,7 +383,7 @@ def article_main_detail(detail_data, inStock=50000):
     ],
     configuratorOptions = [
     ],
-    additionaltext = detail_data[3],
+    additionalText = detail_data[3],
     ean = detail_data[4],
     attribute = dict(
       attr1 = detail_data[5], #PZN
@@ -352,14 +391,20 @@ def article_main_detail(detail_data, inStock=50000):
       dreiscSeoTitleReplace = detail_data[7],
       dreiscSeoTitle = detail_data[8],
     ),
+    purchaseUnit = purchaseUnit,
+    referenceUnit = referenceUnit,
+    unitId = unitId,
   )
 
-def article_variants(groupname, variant_data_list, inStock=50000):
+def article_variants(groupname, variant_data_list, inStock=50000, ignore_active = False):
   """
+  Wenn der Hauptartikel deaktiviert wird, schreiben wir bei den Varianten KEIN
+  active Feld! ignore_active = True
+
   GROUP_NAME = "Colour"
   base="12345"
 
-  # (number, price, option, additionaltext)
+  # (number, price, option, additionalText)
   VARIANT_DATA_LIST = (
     ("%s-11" % base, 199.90, 'Blau', 'S / Blau', ean, pzn, herstnr),
     ("%s-12" % base, 299.90, 'Rot', 'M / Rot', ean, pzn, herstnr),
@@ -370,10 +415,20 @@ def article_variants(groupname, variant_data_list, inStock=50000):
   variants = []
   isMain = True # only for the first
   for v in variant_data_list:
+
+    # Grundpreise:
+    purchaseUnit = v[9]
+    referenceUnit = v[10]
+    unitId = v[11]
+    if (purchaseUnit is None) or (referenceUnit is None) or (unitId is None):
+      # alle oder keins:
+      purchaseUnit = None
+      referenceUnit = None
+      unitId = None
+  
     d = dict(
       isMain = isMain,
       number = v[0],
-      active = 1,
       inStock = inStock,
       prices = [
         dict(
@@ -387,7 +442,7 @@ def article_variants(groupname, variant_data_list, inStock=50000):
           option = v[2],
         ),
       ],
-      additionaltext = v[3],
+      additionalText = v[3],
       ean = v[4],
       attribute = dict(
         attr1 = v[5], #PZN
@@ -395,7 +450,13 @@ def article_variants(groupname, variant_data_list, inStock=50000):
         dreiscSeoTitleReplace = v[7],
         dreiscSeoTitle = v[8],
       ),
+      purchaseUnit = purchaseUnit,
+      referenceUnit = referenceUnit,
+      unitId = unitId,
     )
+    if not ignore_active:
+      d["active"] = 1
+
     options.append(dict(name = v[2]))
     variants.append(d)
     # was only True for the first:
