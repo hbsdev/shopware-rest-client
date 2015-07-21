@@ -95,7 +95,8 @@ def get_data_by_number(ctx, number):
   try:
     r = get_by_number(ctx, number)
   except requests.exceptions.HTTPError as e:
-    assert str(e) == "404 Client Error: Not Found"
+    if str(e) != "404 Client Error: Not Found":
+      r.raise_for_status()
     return None
   #LOG.debug("GET TEXT: %s" % r.text)  
   json = r.json()
