@@ -183,6 +183,24 @@ def get_mainDetail_number(ctx, id):
     variant = None
   return variant
 
+def first_detail_number(data):
+  try:
+    number = data["details"][0]["number"]
+  except KeyError:
+    number = None
+  return number
+
+def get_first_detail_number(ctx,id):
+  a = get(ctx, id)
+  d = a.json()
+  try:
+    data = d["data"] # can raise keyerror
+    number = first_detail_number(data) # can also raise keyerror
+  except KeyError:
+    number = None
+  return number
+
+
 def pprint(ctx, id):
   """"""
   r = get(ctx, id)
