@@ -124,12 +124,12 @@ def ensure_by_number(ctx, payload):
   try:
     r = get_by_number(ctx, number)
     found = True
-    print("FOUND!")
+    #print("FOUND!")
   except requests.exceptions.HTTPError as e:
     assert str(e) == "404 Client Error: Not Found"
     # Does not yet exist:
     found = False
-    print("NOT FOUND %s" % number)
+    #print("NOT FOUND %s" % number)
 
   if not found:
 
@@ -138,7 +138,7 @@ def ensure_by_number(ctx, payload):
   # Already exists, overwrite:
   data = r.json()
   id = data["data"]["id"]
-  print (payload)
+  #print (payload)
   return put(ctx, id, payload)
 
 def put_by_number(ctx, number, payload):
@@ -272,6 +272,11 @@ def article(
 
 
   if should_write(new_article, price):
+
+    # http://team.mercadia.info/issue/MP-2432
+    # __options_prices' => array('replace' => true),
+    #    'prices' => array( ..
+    mainDetail["__options_prices"] = dict(replace=True)
     mainDetail["prices"] = [
       dict(
         customerGroupKey = customerGroupKey,
@@ -375,6 +380,7 @@ def article_main_detail(detail_data, inStock=50000, as_active=True):
     number = detail_data[0],
     active = active,
     inStock = inStock,
+    __options_prices = dict(replace=True),
     prices = [
       dict(
         customerGroupKey = 'EK',
@@ -430,6 +436,7 @@ def article_variants(groupname, variant_data_list, inStock=50000, ignore_active 
       isMain = isMain,
       number = v[0],
       inStock = inStock,
+      __options_prices = dict(replace=True),
       prices = [
         dict(
           customerGroupKey = 'EK',
