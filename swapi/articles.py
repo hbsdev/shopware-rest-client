@@ -171,6 +171,9 @@ def mainDetail_number(data):
     variant = data["mainDetail"]["number"]
   except KeyError:
     variant = None
+  except TypeError:
+    # 'NoneType' object is not subscriptable
+    variant = None
   return variant
 
 def get_mainDetail_number(ctx, id):
@@ -209,15 +212,19 @@ def pprint(ctx, id):
   pprint.pprint(d)
 
 def article(
-  number = None, # "A0012-34"
-  active = None,
+  number = None, # mainDetail, ex: "A0012-34" 
+  active = None, # mainDetail
   price = None, # 12.34 (incl. tax?!)
+  pseudoPrice = None,
   name = None,
   metaTitle = None,
   keywords = None,
   description = None,
   descriptionLong = None,
   inStock = None,
+  purchaseUnit = None, # mainDetail, unit price / Grundpreis
+  referenceUnit = None, # mainDetail, unit price / Grundpreis
+  unitId= None, # mainDetail, unit price / Grundpreis
   supplierId = None, supplier = None, # e.g. supplier = "Supplier Inc."
   taxId  =  None, tax = None, # e.g. tax = 19.0
   categories = None, # [12, 22]
@@ -285,9 +292,19 @@ def article(
   #   ),
   # )
 
+  # mainDetail needs a number
   update_if(mainDetail, new_article, "number", number)
   update_if(mainDetail, new_article, "inStock", inStock)
+  update_if(mainDetail, new_article, "purchaseUnit", purchaseUnit)
+  update_if(mainDetail, new_article, "referenceUnit", referenceUnit)
+  update_if(mainDetail, new_article, "unitId", unitId)
 
+  if number is None:
+    if mainDetail != dict():
+      msg = "Cannot add mainDetails (%s) when 'number' is not set. Article data: %s" % (
+        mainDetail, r)
+      import swapi.error
+      raise swapi.error.SwapiDataStructurError(msg)
 
   if should_write(new_article, price):
 
@@ -297,8 +314,9 @@ def article(
     mainDetail["__options_prices"] = dict(replace=True)
     mainDetail["prices"] = [
       dict(
-        customerGroupKey = customerGroupKey,
-        price = price,
+         customerGroupKey = customerGroupKey,
+         price = price,
+         pseudoPrice = pseudoPrice,
       ),
     ]
   
@@ -384,7 +402,7 @@ def article_main_detail(detail_data, inStock=50000, as_active=True):
   else:
     active = 0
 
-  # Grundpreise:
+  # Grundpreise / unit price:
   purchaseUnit = detail_data[9]
   referenceUnit = detail_data[10]
   unitId = detail_data[11]
@@ -440,7 +458,7 @@ def article_variants(groupname, variant_data_list, inStock=50000, ignore_active 
   isMain = True # only for the first
   for v in variant_data_list:
 
-    # Grundpreise:
+    # Grundpreis / unit price:
     purchaseUnit = v[9]
     referenceUnit = v[10]
     unitId = v[11]
