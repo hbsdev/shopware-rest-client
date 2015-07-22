@@ -171,41 +171,42 @@ def dodelete_by_number(ctx, number, forgive=False):
 
 def mainDetail_number(data):
   try:
-    variant = data["mainDetail"]["number"]
+    return data["mainDetail"]["number"]
   except KeyError:
-    variant = None
+    return None
   except TypeError:
     # 'NoneType' object is not subscriptable
-    variant = None
-  return variant
+    return None
+  # other exceptions will raise here
 
 def get_mainDetail_number(ctx, id):
   a = get(ctx, id)
   d = a.json()
   try:
     data = d["data"] # can raise keyerror
-    variant = mainDetail_number(data) # can also raise keyerror
   except KeyError:
-    variant = None
+    return None
+  # other exceptions will raise here
+  variant = mainDetail_number(data) # can also raise keyerror
   return variant
 
 def first_detail_number(data):
   try:
-    number = data["details"][0]["number"]
+    return data["details"][0]["number"]
   except KeyError:
-    number = None
-  return number
+    return None
+  # other exceptions will raise here
 
 def get_first_detail_number(ctx,id):
   a = get(ctx, id)
   d = a.json()
   try:
     data = d["data"] # can raise keyerror
-    number = first_detail_number(data) # can also raise keyerror
   except KeyError:
-    number = None
+    return None
+  # other exceptions will raise here
+  number = first_detail_number(data)
   return number
-
 
 def pprint(ctx, id):
   """"""
