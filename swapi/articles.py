@@ -425,6 +425,7 @@ def article_main_detail(detail_data, inStock=50000, as_active=True):
       dict(
         customerGroupKey = 'EK',
         price = detail_data[1],
+        pseudoPrice = detail_data[12],
       ),
     ],
     configuratorOptions = [
@@ -481,6 +482,7 @@ def article_variants(groupname, variant_data_list, inStock=50000, ignore_active 
         dict(
           customerGroupKey = 'EK',
           price = v[1],
+          pseudoPrice = v[12],
         ),
       ],
       configuratorOptions = [
