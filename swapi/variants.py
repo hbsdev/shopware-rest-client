@@ -14,13 +14,32 @@ den articleId Parameter innerhlalb des Daten Arrays!
       ..
   );
 """
-def dodelete_by_number(ctx, art8):
-  #art5 = art8[:5]
+def dodelete_by_number(ctx, number):
+  #number = art8[:5]
   #import swapi.articles
-  #articleId = swapi.articles.get_id(ctx, art5)
+  #articleId = swapi.articles.get_id(ctx, number)
   import swapi
   return swapi.dodelete(ctx, "variants", 
-    suffix = "/%s?useNumberAsId=true" % art8)
+    suffix = "/%s?useNumberAsId=true" % number)
+
+"""
+http://community.shopware.com/Shopware-4-API-Beispiele-und-Erweiterungen_detail_1070.html#L.F6schen_von_Varianten
+Löschen von Varianten
+
+Das Löschen von Varianten ist ab Shopware 4.0.5 möglich. Dazu wurde eine eigene
+Variants-Ressource angelegt. Der Funktionsumfang der Ressource beschränkt sich zur
+Zeit auf das Auslesen einzelner Varianten via GET und das Löschen von Varianten via DELETE.
+Im Folgenden Beispiel wird die Variante mit der articleDetailId 23 gelöscht.
+ 
+$client->call('variants/23', ApiClient::METHODE_DELETE);
+Die Variants-Ressource unterstützt dabei ebenfalls den Zugriff via number. Dazu muss der Parameter "useNumberAsId" gesetzt werden.
+
+$params = array(
+    'useNumberAsId' => true
+);
+ 
+$client->delete('variants/SW1234', $params);  
+"""
 
 # def set_main(ctx, number_master, number_detail):
 #   # hat keinen erfolg, es kann der vorherige nicht aufgehoben werden
