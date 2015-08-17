@@ -4,6 +4,11 @@ from tests.fixtures.auth import read_conf
 
 def test_create_query_delete(read_conf):
 
+  use_query_plugin = read_conf[5]
+  if not use_query_plugin:
+    import pytest
+    pytest.skip("Query Plugin not installed on server")
+
   # Create article:
   import random
   a6 = "A%s" % random.randrange(10000,100000) # 10000 - 99999
@@ -19,8 +24,9 @@ def test_create_query_delete(read_conf):
   r = swapi.post(ctx, "articles", ART)
   assert str(r) == '<Response [201]>'
 
-  # Get it id:
+  # Get its id:
   
+  import swapi.articles
   id = swapi.articles.id_for(ctx, number)
   assert id is not None
 
@@ -32,6 +38,11 @@ def test_create_query_delete(read_conf):
   assert swapi.articles.exists(ctx, number) == False
 
 def test_ensure(read_conf):
+
+  use_query_plugin = read_conf[5]
+  if not use_query_plugin:
+    import pytest
+    pytest.skip("Query Plugin not installed on server")
 
   # Create article:
   number = "A0001"

@@ -8,7 +8,7 @@ Shopware REST API client (Proof of concept)
 Python 3 client library for Shopware 4 REST API
 
 * Free software: Apache License, Version 2.0
-* State: Proof of concept
+* State: Experimental
 * OS: Unix/Linux and OSX
 
 Install latest release
@@ -27,6 +27,21 @@ It is necessary to create at least one supplier manually from the backend before
 For configuration create a file ./secret -
 see ./secret-example
 
+Development
+-----------
+
+Use a python 3.4 Virtual environment with pip.
+
+Install dependencies: 
+
+.. code::
+
+  pip install -r requirements.txt
+
+Run tests:
+
+  source ./secret
+  py.test
 
 Some ways to invoke pytest
 --------------------------
