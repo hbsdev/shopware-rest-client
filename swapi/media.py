@@ -52,9 +52,9 @@ def exists(ctx, id):
     return False
   return True
 
-def post(ctx, payload, suffix=""):
+def post(ctx, payload, suffix="", raise_for=False):
   import swapi
-  return swapi.post(ctx, "media", payload, suffix = suffix)
+  return swapi.post(ctx, "media", payload, suffix = suffix, raise_for = raise_for)
 
 def put(ctx, id, payload):
   """PUT oficially not supported with media"""

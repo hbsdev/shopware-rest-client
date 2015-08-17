@@ -69,7 +69,7 @@ class NetRetry():
       # we need to re-raise it!
       return False
 
-def get(ctx, coll, suffix=""):
+def get(ctx, coll, suffix="", raise_for=False):
   # next_action, exception, message, result = handle_context(ctx)
   #if next_action == "return"
   #  return result
@@ -103,11 +103,13 @@ def get(ctx, coll, suffix=""):
       break
 
   # we raise everything else here, also 404
-  r.raise_for_status()
+  if raise_for:
+    r.raise_for_status()
+
   return r
 
 
-def post(ctx, coll, payload, suffix=""):
+def post(ctx, coll, payload, suffix="", raise_for=True):
   conf = ctx["conf"]
   import swapi.http
   url = "%s%s" % (swapi.http.construct_url(conf, coll), suffix)
@@ -139,7 +141,8 @@ def post(ctx, coll, payload, suffix=""):
     if rest_call_ok:
       break
 
-  r.raise_for_status() # raises exception for bad response codes
+  if raise_for:
+    r.raise_for_status() # raises exception for bad response codes
 
   #if rdict.get("success", False):
   #  ok = True
@@ -155,7 +158,7 @@ def post(ctx, coll, payload, suffix=""):
 
   return r
 
-def put(ctx, coll, payload, suffix=""):
+def put(ctx, coll, payload, suffix="", raise_for=False):
   conf = ctx["conf"]
   import swapi.http
   url = "%s%s" % (swapi.http.construct_url(conf, coll), suffix)
@@ -187,11 +190,13 @@ def put(ctx, coll, payload, suffix=""):
     if rest_call_ok:
       break
 
-  r.raise_for_status() # raises exception for bad response codes
+  if raise_for:
+    r.raise_for_status() # raises exception for bad response codes
+
   return r
 
 
-def dodelete(ctx, coll, suffix=""):
+def dodelete(ctx, coll, suffix="", raise_for=False):
   conf = ctx["conf"]
   import swapi.http
   url = "%s%s" % (swapi.http.construct_url(conf, coll), suffix)
@@ -208,7 +213,9 @@ def dodelete(ctx, coll, suffix=""):
     return r
 
   swapi.LOG.warning("Response of DELETE request: %s" % str(r))
-  r.raise_for_status() # raises exception for bad response codes
+
+  if raise_for:
+    r.raise_for_status() # raises exception for bad response codes
 
   #rdict = r.json()
   #if rdict.get("success", False):
