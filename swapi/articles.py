@@ -169,6 +169,40 @@ def dodelete_by_number(ctx, number, forgive=False):
     return None
   return dodelete(ctx, id)
 
+def set_active(ctx, id, is_active):
+  # Artikelnummer = mainDetail.number
+  # php: $client->delete('articles/193');
+  import swapi.articles
+  return swapi.articles.put(
+    ctx,
+    id,
+    payload = dict(
+      active = is_active,
+    )
+  )
+
+def set_active_by_number(ctx, number, is_active):
+  # Artikelnummer = mainDetail.number
+  ## Deleting articles by number using the API isn't possible as of 2015-MAY
+  # return dodelete(ctx,"/%s?useNumberAsId=true" % number)
+  id = id_for(ctx, number)
+  return set_active(ctx, id, is_active)
+
+def is_active(ctx, id):
+  a = get(ctx, id)
+  d = a.json()
+  pp(d)
+  try:
+    data = d["data"] # can raise keyerror
+  except KeyError:
+    return None
+  # other exceptions will raise here
+  return data["active"]
+
+def is_active_by_number(ctx, number):
+  id = id_for(ctx, number)
+  return is_active(ctx, id)
+
 def mainDetail_number(data):
   try:
     return data["mainDetail"]["number"]
