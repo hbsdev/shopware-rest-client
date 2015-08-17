@@ -24,7 +24,7 @@ def construct_url(conf, coll):
   proto, server, basepath, user, key = conf
   url = '%s://%s%sapi/%s' % (proto, server, basepath, coll)
   import swapi
-  swapi.LOG.debug("Url constructed: %s", url)
+  swapi.LOG.debug("Url constructed: %s" % url)
   return url
 
 
