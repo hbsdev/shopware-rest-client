@@ -9,7 +9,12 @@ LOG = easylog.get("SWAPI")
 
 def get_raw(ctx, suffix=""):
   import swapi
-  return swapi.get(ctx, "articles", suffix = suffix)
+  return swapi.get(
+    ctx,
+    "articles",
+    suffix=suffix,
+    raise_for=True,
+  )
 
 def get(ctx, id = None):
   if id is None:
@@ -109,7 +114,13 @@ def get_data_by_number(ctx, number):
 
 def post(ctx, payload, suffix=""):
   import swapi
-  return swapi.post(ctx, "articles", payload, suffix = suffix)
+  return swapi.post(
+    ctx,
+    "articles",
+    payload,
+    suffix=suffix,
+    raise_for=True,
+  )
 
 def put(ctx, id, payload):
   """
@@ -119,7 +130,13 @@ def put(ctx, id, payload):
   """
 
   import swapi
-  return swapi.put(ctx, "articles", payload, suffix = "/%s" % id)
+  return swapi.put(
+    ctx,
+    "articles",
+    payload,
+    suffix = "/%s" % id,
+    raise_for=True,
+  )
 
 def ensure_by_number(ctx, payload):
   number = payload["mainDetail"]["number"]
@@ -149,11 +166,20 @@ def put_by_number(ctx, number, payload):
   id = id_for(ctx, number)
   return put(ctx, id, payload)
 
-def dodelete(ctx, id):
+def dodelete(ctx, id, forgive=False):
   # Artikelnummer = mainDetail.number
   # php: $client->delete('articles/193');
+  if forgive:
+    raise_for = False
+  else:
+    raise_for = True
   import swapi
-  return swapi.dodelete(ctx, "articles", suffix = "/%s" % id)
+  return swapi.dodelete(
+    ctx,
+    "articles",
+    suffix = "/%s" % id,
+    raise_for=raise_for,
+  )
 
 def dodelete_by_number(ctx, number, forgive=False):
   # Artikelnummer = mainDetail.number
@@ -161,19 +187,18 @@ def dodelete_by_number(ctx, number, forgive=False):
   # return dodelete(ctx,"/%s?useNumberAsId=true" % number)
   if not forgive:
     id = id_for(ctx, number)
-    return dodelete(ctx, id)
+    return dodelete(ctx, id, forgive=forgive)
   # Do forgive if not exists:
   try:  
     id = id_for(ctx, number)
   except:
     return None
-  return dodelete(ctx, id)
+  return dodelete(ctx, id, forgive=forgive)
 
 def set_active(ctx, id, is_active):
   # Artikelnummer = mainDetail.number
   # php: $client->delete('articles/193');
-  import swapi.articles
-  return swapi.articles.put(
+  return put(
     ctx,
     id,
     payload = dict(
