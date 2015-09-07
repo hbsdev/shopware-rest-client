@@ -502,15 +502,67 @@ def article_main_detail(detail_data, inStock=50000, as_active=True):
     unitId = unitId,
   )
 
-def article_variants(groupname, variant_data_list, inStock=50000, ignore_active = False):
-  """
-  Wenn der Hauptartikel deaktiviert wird, schreiben wir bei den Varianten KEIN
-  active Feld! ignore_active = True
+def variant_data_extract(v, isMain, inStock, groupname, ignore_active=False):
+  # Grundpreis / unit price:
+  purchaseUnit = v[9]
+  referenceUnit = v[10]
+  unitId = v[11]
+  if (purchaseUnit is None) or (referenceUnit is None) or (unitId is None):
+    # alle oder keins:
+    purchaseUnit = None
+    referenceUnit = None
+    unitId = None
 
+  d = dict(
+    isMain = isMain,
+    number = v[0],
+    inStock = inStock,
+    __options_prices = dict(replace=True),
+    prices = [
+      dict(
+        customerGroupKey = 'EK',
+        price = v[1],
+        pseudoPrice = v[12],
+      ),
+    ],
+    configuratorOptions = [
+      dict(
+        group = groupname,
+        option = v[2],
+      ),
+    ],
+    additionalText = v[3],
+    ean = v[4],
+    attribute = dict(
+      attr1 = v[5], #PZN
+      attr2 = v[6], #Herstellernummer
+      dreiscSeoTitleReplace = v[7],
+      dreiscSeoTitle = v[8],
+    ),
+    purchaseUnit = purchaseUnit,
+    referenceUnit = referenceUnit,
+    unitId = unitId,
+  )
+  if not ignore_active:
+    d["active"] = 1
+  return d
+
+
+def article_variants(
+  groupname,
+  variant_data_list,
+  inStock=50000,
+  ignore_active = False,
+  skip_first = True,
+):
+  """
   GROUP_NAME = "Colour"
-  base="12345"
+  ignore_active = True -> Wenn der Hauptartikel deaktiviert wird, schreiben
+  wir bei den Varianten KEIN active Feld! 
+  skip_first = True -> first variant is ignored here
 
   # (number, price, option, additionalText)
+  base="12345"
   VARIANT_DATA_LIST = (
     ("%s-11" % base, 199.90, 'Blau', 'S / Blau', ean, pzn, herstnr),
     ("%s-12" % base, 299.90, 'Rot', 'M / Rot', ean, pzn, herstnr),
@@ -519,54 +571,19 @@ def article_variants(groupname, variant_data_list, inStock=50000, ignore_active 
   """
   options = []
   variants = []
-  isMain = True # only for the first
-  for v in variant_data_list:
 
-    # Grundpreis / unit price:
-    purchaseUnit = v[9]
-    referenceUnit = v[10]
-    unitId = v[11]
-    if (purchaseUnit is None) or (referenceUnit is None) or (unitId is None):
-      # alle oder keins:
-      purchaseUnit = None
-      referenceUnit = None
-      unitId = None
-  
-    d = dict(
-      isMain = isMain,
-      number = v[0],
-      inStock = inStock,
-      __options_prices = dict(replace=True),
-      prices = [
-        dict(
-          customerGroupKey = 'EK',
-          price = v[1],
-          pseudoPrice = v[12],
-        ),
-      ],
-      configuratorOptions = [
-        dict(
-          group = groupname,
-          option = v[2],
-        ),
-      ],
-      additionalText = v[3],
-      ean = v[4],
-      attribute = dict(
-        attr1 = v[5], #PZN
-        attr2 = v[6], #Herstellernummer
-        dreiscSeoTitleReplace = v[7],
-        dreiscSeoTitle = v[8],
-      ),
-      purchaseUnit = purchaseUnit,
-      referenceUnit = referenceUnit,
-      unitId = unitId,
-    )
-    if not ignore_active:
-      d["active"] = 1
+  if skip_first:
+    variant_data_list_local = variant_data_list[1:]
+    isMain = False # because the main variant is in the main article
+  else:
+    variant_data_list_local = variant_data_list
+    isMain = True # only for the first
+
+  for v in variant_data_list_local:
+    vdata = variant_data_extract(v, isMain, inStock, groupname, ignore_active)  
 
     options.append(dict(name = v[2]))
-    variants.append(d)
+    variants.append(vdata)
     # was only True for the first:
     isMain = False
 
