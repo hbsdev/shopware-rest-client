@@ -26,13 +26,13 @@ def get_by_number(ctx, number):
   # raises requests.exceptions.HTTPError if not found:
   return get_raw(ctx, "/%s?useNumberAsId=true" % number)
 
-def id_for_startswith(ctx, number_prefix):
+def id_for_prefix(ctx, number_prefix):
   """returns articleId of first found article who's ordernumber starts with number_prefix"""
   # TODO: use proper url encoding function
   q = "".join([
     "SELECT+a+FROM+%5CShopware%5CModels%5CArticle%5CDetail+a+",
     "WHERE+a.number+LIKE+%27",
-    number_prefix,
+    "%s" % number_prefix,
     "%25", # %
     "%27", # '
   ])
@@ -46,6 +46,17 @@ def id_for_startswith(ctx, number_prefix):
   articleId = data["data"][0]["articleId"]
   return articleId
 
+# old name, deprecate!
+def id_for_startswith(ctx, number_prefix):
+  return id_for_prefix(ctx, number_prefix)
+
+def get_by_prefix(ctx, number_prefix):
+  articleId = id_for_prefix(ctx, number_prefix)
+  if articleId is None:
+    return None
+  # Artikelnumber = mainDetail.number
+  # raises requests.exceptions.HTTPError if not found:
+  return get(ctx, articleId)
 
 def id_for(ctx, number):
   r = get_by_number(ctx, number)
@@ -80,6 +91,11 @@ def exists(ctx, number):
   if not data["success"]:
     return False
   return True
+
+def exists_by_prefix(ctx, number_prefix):
+  if id_for_prefix(ctx, number_prefix) is None:
+    return False
+  return True  
 
 def get_data(ctx, id):
   import requests.exceptions
@@ -216,7 +232,6 @@ def set_active_by_number(ctx, number, is_active):
 def is_active(ctx, id):
   a = get(ctx, id)
   d = a.json()
-  pp(d)
   try:
     data = d["data"] # can raise keyerror
   except KeyError:
@@ -573,17 +588,22 @@ def article_variants(
   variants = []
 
   if skip_first:
-    variant_data_list_local = variant_data_list[1:]
     isMain = False # because the main variant is in the main article
+    skip_next = True
   else:
-    variant_data_list_local = variant_data_list
     isMain = True # only for the first
+    skip_next = False
 
-  for v in variant_data_list_local:
+  for v in variant_data_list:
     vdata = variant_data_extract(v, isMain, inStock, groupname, ignore_active)  
 
+    # Optionen auch bei skip_next hinzufuegen!
     options.append(dict(name = v[2]))
-    variants.append(vdata)
+    if skip_next:
+      # Nur den ersten ueberspringen
+      skip_next = False
+    else:
+      variants.append(vdata)
     # was only True for the first:
     isMain = False
 
