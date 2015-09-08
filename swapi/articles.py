@@ -461,7 +461,7 @@ dict(
 #    )
 
 
-def article_main_detail(detail_data, inStock=50000, as_active=True):
+def article_main_detail(detail_data, inStock=50000, as_active=True, with_configuratorOptions=True):
   """
   # (number, price, option, additionalText, ...)
   DETAIL_DATA = (
@@ -490,7 +490,7 @@ def article_main_detail(detail_data, inStock=50000, as_active=True):
     referenceUnit = None
     unitId = None
 
-  return dict(
+  res = dict(
     number = detail_data[0],
     active = active,
     inStock = inStock,
@@ -501,8 +501,6 @@ def article_main_detail(detail_data, inStock=50000, as_active=True):
         price = detail_data[1],
         pseudoPrice = detail_data[12],
       ),
-    ],
-    configuratorOptions = [
     ],
     additionalText = detail_data[3],
     ean = detail_data[4],
@@ -516,6 +514,9 @@ def article_main_detail(detail_data, inStock=50000, as_active=True):
     referenceUnit = referenceUnit,
     unitId = unitId,
   )
+  if with_configuratorOptions:
+    res["configuratorOptions"] = []
+  return res
 
 def variant_data_extract(v, isMain, inStock, groupname, ignore_active=False):
   # Grundpreis / unit price:
