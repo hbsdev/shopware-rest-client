@@ -14,13 +14,21 @@ den articleId Parameter innerhlalb des Daten Arrays!
       ..
   );
 """
-def dodelete_by_number(ctx, number):
-  #number = art8[:5]
-  #import swapi.articles
-  #articleId = swapi.articles.get_id(ctx, number)
+
+
+def dodelete_by_number(ctx, number, forgive=False):
+  # http://community.shopware.com/_detail_1694.html#DELETE_.28einzeln.29
+  if forgive:
+    raise_for = False
+  else:
+    raise_for = True
   import swapi
-  return swapi.dodelete(ctx, "variants", 
-    suffix = "/%s?useNumberAsId=true" % number)
+  return swapi.dodelete(
+    ctx,
+    "variants", 
+    suffix = "/%s?useNumberAsId=true" % number,
+    raise_for=raise_for,
+  )
 
 """
 http://community.shopware.com/Shopware-4-API-Beispiele-und-Erweiterungen_detail_1070.html#L.F6schen_von_Varianten
