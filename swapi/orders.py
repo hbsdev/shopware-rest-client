@@ -148,11 +148,16 @@ def get_filtered(ctx, filter):
     return None
   return json["data"]
 
-def get_by_ordertime(ctx, isodatefrom, isodateto=None):
-  filter = ('orderTime', '>=', isodatefrom)
+def get_by_ordertime(ctx, isodatefrom, isodateto=None, with_number_only=True):
+  filter=[]
+  filter.append(('orderTime', '>=', isodatefrom))
   if isodateto is not None:
-    filter_to = ('orderTime', '<=', isodateto)
-    filter = (filter, filter_to)
+    filter.append(('orderTime', '<=', isodateto))
+  if with_number_only:
+    filter.append(('number', '>', 0))
+  if len(filter) < 2:
+    # if only one filter, no array necessary:
+    filter = filter[0]
   # raises requests.exceptions.HTTPError if not found:
   return get_filtered(ctx, filter)
 
