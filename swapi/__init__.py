@@ -9,11 +9,11 @@ LOG = swapi.log.create()
 
 def debuginfo(ctx, print=False):
   if print:
-    print(ctx["json1"])
-    print(ctx["json"])
+    print(ctx.get("json1",dict()))
+    print(ctx.get("json",dict()))
   return dict(
-    json1 = ctx["json1"],
-    json = ctx["json"],
+    json1 = ctx.get("json1",dict()),
+    json = ctx.get("json",dict()),
     )
 
 class NetRetry():
