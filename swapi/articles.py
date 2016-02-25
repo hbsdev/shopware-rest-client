@@ -7,26 +7,26 @@ LOG = easylog.get("SWAPI")
 
 # siehe php signaturen !
 
-def get_raw(ctx, suffix=""):
+def get_raw(ctx, suffix="", raise_for=False):
   import swapi
   return swapi.get(
     ctx,
     "articles",
     suffix=suffix,
-    raise_for=True,
+    raise_for=raise_for,
   )
 
-def get(ctx, id = None):
+def get(ctx, id = None, raise_for=False):
   if id is None:
-    return get_raw(ctx)
-  return get_raw(ctx, "/%s" % id)
+    return get_raw(ctx, raise_for=raise_for)
+  return get_raw(ctx, "/%s" % id, raise_for=raise_for)
 
-def get_by_number(ctx, number):
+def get_by_number(ctx, number, raise_for=False):
   # Artikelnumber = mainDetail.number
   # raises requests.exceptions.HTTPError if not found:
-  return get_raw(ctx, "/%s?useNumberAsId=true" % number)
+  return get_raw(ctx, "/%s?useNumberAsId=true" % number, raise_for=raise_for)
 
-def id_for_prefix(ctx, number_prefix):
+def id_for_prefix(ctx, number_prefix, raise_for=False):
   """returns articleId of first found article who's ordernumber starts with number_prefix"""
   # TODO: use proper url encoding function
   q = "".join([
@@ -37,7 +37,7 @@ def id_for_prefix(ctx, number_prefix):
     "%27", # '
   ])
   import swapi.d_query
-  r = swapi.d_query.get(ctx, q)
+  r = swapi.d_query.get(ctx, q, raise_for=raise_for)
   data = r.json()
   if not data["success"]:
     return None
@@ -50,13 +50,13 @@ def id_for_prefix(ctx, number_prefix):
 def id_for_startswith(ctx, number_prefix):
   return id_for_prefix(ctx, number_prefix)
 
-def get_by_prefix(ctx, number_prefix):
-  articleId = id_for_prefix(ctx, number_prefix)
+def get_by_prefix(ctx, number_prefix, raise_for=False):
+  articleId = id_for_prefix(ctx, number_prefix, raise_for=raise_for)
   if articleId is None:
     return None
   # Artikelnumber = mainDetail.number
   # raises requests.exceptions.HTTPError if not found:
-  return get(ctx, articleId)
+  return get(ctx, articleId, raise_for=raise_for)
 
 def id_for(ctx, number):
   r = get_by_number(ctx, number)
@@ -135,7 +135,7 @@ def post(ctx, payload, suffix=""):
     "articles",
     payload,
     suffix=suffix,
-    raise_for=True,
+    raise_for = True,
   )
 
 def put(ctx, id, payload):
@@ -151,7 +151,7 @@ def put(ctx, id, payload):
     "articles",
     payload,
     suffix = "/%s" % id,
-    raise_for=True,
+    raise_for = True,
   )
 
 def ensure_by_number(ctx, payload):
@@ -168,7 +168,6 @@ def ensure_by_number(ctx, payload):
     #print("NOT FOUND %s" % number)
 
   if not found:
-
     return post(ctx, payload)
 
   # Already exists, overwrite:
@@ -288,6 +287,13 @@ def pprint(ctx, id):
   d = r.json()
   import pprint
   pprint.pprint(d)
+
+def add_price(a, customerGroupKey, price):
+  a['mainDetail']['prices'].append(dict(
+    price = price,
+    customerGroupKey = customerGroupKey,
+  ))
+  return a
 
 def article(
   number = None, # mainDetail, ex: "A0012-34" 
@@ -518,7 +524,7 @@ def article_main_detail(detail_data, inStock=50000, as_active=True, with_configu
     res["configuratorOptions"] = []
   return res
 
-def variant_data_extract(v, isMain, inStock, groupname, ignore_active=False):
+def variant_data_extract(v, isMain, inStock, groupname, ignore_active=False, more_prices_percentual=[]):
   # Grundpreis / unit price:
   purchaseUnit = v[9]
   referenceUnit = v[10]
@@ -529,18 +535,27 @@ def variant_data_extract(v, isMain, inStock, groupname, ignore_active=False):
     referenceUnit = None
     unitId = None
 
+  prices = []
+  prices.append(dict(
+      customerGroupKey = 'EK',
+      price = v[1],
+      pseudoPrice = v[12],
+  ))
+  for mpp in more_prices_percentual:
+    prices.append(dict(
+      customerGroupKey = mpp['customerGroupKey'],
+      price = v[1] * (1 + mpp['addPerCent']/100),
+    ))
   d = dict(
     isMain = isMain,
     number = v[0],
     inStock = inStock,
     __options_prices = dict(replace=True),
-    prices = [
-      dict(
-        customerGroupKey = 'EK',
-        price = v[1],
-        pseudoPrice = v[12],
-      ),
-    ],
+    prices = prices,
+
+
+
+
     configuratorOptions = [
       dict(
         group = groupname,
@@ -570,6 +585,7 @@ def article_variants(
   inStock=50000,
   ignore_active = False,
   skip_first = True,
+  more_prices_percentual = [],
 ):
   """
   GROUP_NAME = "Colour"
@@ -596,7 +612,7 @@ def article_variants(
     skip_next = False
 
   for v in variant_data_list:
-    vdata = variant_data_extract(v, isMain, inStock, groupname, ignore_active)  
+    vdata = variant_data_extract(v, isMain, inStock, groupname, ignore_active, more_prices_percentual=more_prices_percentual)  
 
     # Optionen auch bei skip_next hinzufuegen!
     options.append(dict(name = v[2]))

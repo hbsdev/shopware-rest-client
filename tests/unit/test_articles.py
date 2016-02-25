@@ -149,3 +149,76 @@ def test_articles_create_update_main_detail():
   assert a['mainDetail']['prices'][0]['price'] == 1.23
   assert a['mainDetail']['prices'][0]['customerGroupKey'] == 'EK'
   assert 'number' not in a['mainDetail']
+
+def test_add_price():
+  a = { 'mainDetail': { 'prices': [{'customerGroupKey': 'EK',
+                                   'price': 1.23,
+                                   'pseudoPrice': 2.23}], }}
+  assert a['mainDetail']['prices'][0]['price'] == 1.23
+  assert a['mainDetail']['prices'][0]['customerGroupKey'] == 'EK'
+  import swapi.articles
+  a = swapi.articles.add_price(a, "G2", 4.56)
+  assert a['mainDetail']['prices'][1]['price'] == 4.56
+  assert a['mainDetail']['prices'][1]['customerGroupKey'] == 'G2'
+  
+def test_variant_data_extract():
+  v = [
+    None, # 0
+    1.00, # 1 price
+    None, 
+    None, 
+    None, 
+    None, 
+    None, 
+    None, 
+    None, 
+    None, 
+    None, 
+    None, 
+    None, # 12
+  ]
+  isMain = False
+  inStock = False
+  groupname = "group1"
+  import swapi.articles
+  d = swapi.articles.variant_data_extract(v, isMain, inStock, groupname, ignore_active=False)
+  assert len(d["prices"]) == 1
+  more_prices_percentual = [dict(
+    customerGroupKey = "K1",
+    addPerCent = 11,
+  ),]
+  d = swapi.articles.variant_data_extract(v, isMain, inStock, groupname, ignore_active=False, more_prices_percentual=more_prices_percentual)
+  assert len(d["prices"]) == 2
+  assert d["prices"][0]["price"] == 1.00
+  assert d["prices"][0]["customerGroupKey"] == "EK"
+  assert d["prices"][1]["price"] == 1.11
+  assert d["prices"][1]["customerGroupKey"] == "K1"
+  """
+  d = {
+    '__options_prices': {'replace': True},
+    'attribute': {
+      'dreiscSeoTitle': None,
+      'dreiscSeoTitleReplace': None,
+      'attr1': None,
+      'attr2': None},
+    'additionalText': None,
+    'referenceUnit': None,
+    'prices': [
+      {
+        'price': None,
+        'pseudoPrice': None,
+        'customerGroupKey': 'EK'
+      }
+    ],
+    'purchaseUnit': None,
+    'isMain': False,
+    'configuratorOptions': 
+      [{'option': None,
+      'group': 'group1'}],
+    'ean': None,
+    'unitId': None,
+    'inStock': False,
+    'number': None,
+    'active': 1}  
+  """
+  print(d)
