@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import easylog
 
-easylog.create("SWAPI", "DEBUG")
+easylog.create("SWAPI", "ERROR")
 
 LOG = easylog.get("SWAPI")
 
