@@ -160,20 +160,26 @@ def ensure_by_number(ctx, payload):
   try:
     r = get_by_number(ctx, number)
     found = True
-    #print("FOUND!")
   except requests.exceptions.HTTPError as e:
     assert str(e) == "404 Client Error: Not Found"
     # Does not yet exist:
     found = False
-    #print("NOT FOUND %s" % number)
 
   if not found:
     return post(ctx, payload)
 
-  # Already exists, overwrite:
   data = r.json()
+
+  if not data["success"]:
+    '''
+    {'data': 
+      {'message': 'Article by number A0001 not found', 
+       'success': False}}
+    '''
+    return post(ctx, payload)
+
+  # Already exists, overwrite:
   id = data["data"]["id"]
-  #print (payload)
   return put(ctx, id, payload)
 
 def put_by_number(ctx, number, payload):
