@@ -17,6 +17,11 @@ Install latest release
 
   pip install --upgrade https://github.com/hbsdev/shopware-rest-client/raw/master/dist/shopware_rest_client-0.1.0.zip
 
+Dependencies
+------------
+
+For some cases the DQL query plugin on the server needs to be installed: https://github.com/kwmiebach/shopware-api-query
+
 
 Test Configuration
 ------------------
