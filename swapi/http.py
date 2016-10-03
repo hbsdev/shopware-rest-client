@@ -97,6 +97,26 @@ def rest_call(ctx, method, url, auth, data=None, fake_error={}):
   except:
     rdict = dict()
   ctx["json"] = rdict # in case of exception query this dict!
+  if r.status_code == 503:
+    # because shopware 4.x delivered a raw 503 error like this:
+    """
+
+    Fatal error: Allowed memory size of 134217728 bytes exhausted (tried to allocate 123 bytes) in /var/www/vendor/doctrine/orm/lib/Doctrine/ORM/UnitOfWork.php on 
+    line 2700
+    503 Service Unavailable  
+    """
+    chunk_size = 512
+    chunks = []
+    # Also works without stream = True:
+    for chunk in r.iter_content(chunk_size):
+      chunks.append(str(chunk))
+    ctx['json']['raw_error'] = 'HTTP Error 503: %s' % " ".join(chunks)
+    print(ctx['json']['raw_error'])
+    #Or write it to a file:
+    #with open('/tmp/raw_error', 'wb') as fd:
+    #    for chunk in r.iter_content(chunk_size):
+    #      fd.write(chunk)    
+
   def debug_json(key,d):
     val = d.get(key, None)    
     if val is not None:
