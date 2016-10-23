@@ -504,6 +504,7 @@ def article_main_detail(detail_data, inStock=50000, as_active=True, with_configu
 
   res = dict(
     number = detail_data[0],
+    supplierNumber = detail_data[6],
     active = active,
     inStock = inStock,
     __options_prices = dict(replace=True),
@@ -555,13 +556,10 @@ def variant_data_extract(v, isMain, inStock, groupname, ignore_active=False, mor
   d = dict(
     isMain = isMain,
     number = v[0],
+    supplierNumber = v[6], #Herstellernummer
     inStock = inStock,
     __options_prices = dict(replace=True),
     prices = prices,
-
-
-
-
     configuratorOptions = [
       dict(
         group = groupname,
