@@ -138,12 +138,17 @@ def post(ctx, payload, suffix=""):
     raise_for = True,
   )
 
-def put(ctx, id, payload):
+def put(ctx, id, payload, replace=False):
   """
   php: $client->put('articles/193', array(
          'name' => 'New Article Name'
        ));
   """
+
+  if replace:
+    #import copy
+    #payload = copy.deepcopy(payload)
+    payload['__options_articles'] = dict(replace=True)
 
   import swapi
   return swapi.put(
