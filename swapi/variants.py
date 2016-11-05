@@ -141,9 +141,33 @@ def numbers(ctx, id, active=True):
       res.append(detail["number"])
   return sorted(res)
 
+def unset_variant_doctrine(ctx, id):
+  #dql_query = "UPDATE+%5CShopware%5CModels%5CArticle%5CArticle+a+SET+a.configuratorSetId+=+NULL+WHERE+a.id+=+" + "%s" % id
+  dql_query = "UPDATE+%5CShopware%5CModels%5CArticle%5CArticle+a+SET+a.configuratorSet+=+NULL+WHERE+a.id+=+" + "%s" % id
+  # UPDATE \Shopware\Models\Articles a SET a.configuratorSetId = NULL WHERE a.id = 1840
+  #dql_query = "DELETE+FROM+%5CShopware%5CModels%5CArticle%5CDetail+d+WHERE+d.number+=+%27" + "%s" % number + "%27"
+  print("UNSET VARIANT - id = %s, dql = %s" % (id, dql_query))
+  import swapi.d_query
+  return swapi.d_query.get(ctx, dql_query)
 
 """
+def unset_variant(ctx, id):
+  # does not work - configuratorSet will not be deleted!
+  import swapi.articles
+  return swapi.articles.put(
+    ctx,
+    id,
+    payload = dict(
+      __options_articles = dict(replace=True),
+      #configuratorSetId = None,
+      configuratorSet = dict(),
+      #variants = None,
+    )
+  )
+"""
 
+
+"""
 Struktur der Varianten im Artikel:
 
 - a) Eine dictionary im Feld "mainDetail"
