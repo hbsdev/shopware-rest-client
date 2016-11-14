@@ -477,7 +477,32 @@ def article_main_detail(detail_data, inStock=50000, as_active=True, with_configu
   """
   # (number, price, option, additionalText, ...)
   DETAIL_DATA = (
-    "12345-11", 199.90, 'blue', 'S / blue', ean, pzn, supplier_order_number, tax)
+    "12345-11",  0
+    199.90,      1
+    'blue',      2
+    'S / blue',  3
+    ean,         4
+    pzn,         5
+    supplier_order_number,  6
+    tax,         7
+
+
+      a8, # 0 "12345-01"
+      ArtVerkaufspreis1_brutto 199.99
+      vtext, 'blue'
+      vtext, ' S/ blue'
+      ean,
+      pzn, # 5
+      herstnr, supplier_order_number
+      dreiscSeoTitleReplace,
+      dreiscSeoTitle,
+      grundpreis_info["purchaseUnit"],
+      grundpreis_info["referenceUnit"], # 10
+      grundpreis_info["unitId"],
+      v_pseudoPrice_brutto,
+      v_ebayPrice_brutto,
+      inStockVariant, # 14
+    )
   """
   if len(detail_data) < 9:
     import swapi.error
@@ -502,11 +527,17 @@ def article_main_detail(detail_data, inStock=50000, as_active=True, with_configu
     referenceUnit = None
     unitId = None
 
+  inStockVariant = inStock
+  try:
+    inStockVariant = detail_data[11]
+  except:
+    pass
+
   res = dict(
     number = detail_data[0],
     supplierNumber = detail_data[6],
     active = active,
-    inStock = inStock,
+    inStock = inStockVariant,
     __options_prices = dict(replace=True),
     prices = [
       dict(
