@@ -206,6 +206,23 @@ def put(ctx, id, payload):
     raise_for=True,
   )
 
+
+def set_status(ctx, id, status):
+  payload = dict(
+    orderStatusId = int(status),
+  ) 
+  # https://developers.shopware.com/developers-guide/rest-api/examples/order/#example-3-update-an-order
+  #$client->put('orders/15',  array(
+  #    'paymentStatusId' => 10,
+  #    'orderStatusId' => 8,
+  #    'trackingCode' => '237948723894789234',
+  #    'comment' => 'Neuer Kommentar',
+  #    'transactionId' => '0',
+  #    'clearedDate' => $date
+  #));
+  return put(ctx, id, payload)
+
+
 def ensure_by_number(ctx, payload):
   number = payload["mainDetail"]["number"]
   import requests.exceptions
