@@ -25,6 +25,25 @@ def get_by_number(ctx, number):
   # raises requests.exceptions.HTTPError if not found:
   return get_raw(ctx, "/%s?useNumberAsId=true" % number)
 
+# -*- coding: utf-8 -*-
+
+#from pprint import pprint as pp
+
+import easylog
+LOG = easylog.get("SWAPI")
+
+def get_by_customer_doctrine(ctx, customer_id):
+  # join see http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins
+  dql_query = "+".join([
+    "SELECT",
+    "o",
+    "FROM+%5CShopware%5CModels%5COrder%5COrder+o",
+    "JOIN+o.customer+c",
+    "WHERE+c.id+=+%27" + "%s" % customer_id + "%27",
+  ])
+  import swapi.d_query
+  return swapi.d_query.get(ctx, dql_query)
+
 def id_for_prefix(ctx, number_prefix):
   """returns id of first found who's ordernumber starts with number_prefix"""
   # TODO: use proper url encoding function
