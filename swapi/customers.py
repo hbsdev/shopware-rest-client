@@ -115,9 +115,12 @@ def get_data_by_number(ctx, number):
   try:
     r = get_by_number(ctx, number)
   except requests.exceptions.HTTPError as e:
-    if str(e) == "404 Client Error: Not Found":
+    s = "404 Client Error: Not Found"
+    if str(e)[:len(s)] == s:
       return None
-    if str(e) == "400 Client Error: Bad Request":
+    s = "400 Client Error: Bad Request"
+    ls = len(s)
+    if str(e)[:len(s)] == s:
       return None
     raise Exception("Failed get_data_by_number(%s: %s" % (number,str(e)))
   #LOG.debug("GET TEXT: %s" % r.text)  
