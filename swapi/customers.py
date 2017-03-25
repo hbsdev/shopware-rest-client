@@ -104,11 +104,10 @@ def get_data(ctx, id):
     assert str(e) == "404 Client Error: Not Found"
     return None
   #LOG.debug("GET TEXT: %s" % r.text)  
-  json = r.json()
   data = r.json()
   if not data["success"]:
     return None
-  return json["data"]
+  return data["data"]
 
 def get_data_by_number(ctx, number):
   import requests.exceptions
@@ -124,11 +123,10 @@ def get_data_by_number(ctx, number):
       return None
     raise Exception("Failed get_data_by_number(%s: %s" % (number,str(e)))
   #LOG.debug("GET TEXT: %s" % r.text)  
-  json = r.json()
   data = r.json()
   if not data["success"]:
     return None
-  return json["data"]
+  return data["data"]
 
 def get_filtered(ctx, filter):
   import swapi.filter
@@ -145,11 +143,10 @@ def get_filtered(ctx, filter):
       return None
     raise Exception("Failed get_data_by_number(%s: %s" % (number,str(e)))
   #LOG.debug("GET TEXT: %s" % r.text)  
-  json = r.json()
   data = r.json()
   if not data["success"]:
     return None
-  return json["data"]
+  return data["data"]
 
 def get_by_ordertime(ctx, isodatefrom, isodateto=None):
   filter = ('orderTime', '>=', isodatefrom)
