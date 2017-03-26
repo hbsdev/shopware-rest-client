@@ -5,7 +5,7 @@ def ok():
 
 
 def articles_testdata(number):
-  a = dict(
+  return dict(
     name = 'Demoartikel %s' % number,
     active = True,
     supplierId = 1,
@@ -14,4 +14,22 @@ def articles_testdata(number):
       number = "%s" % number
     ),
   )
-  return a
+
+def customers_testdata(number):
+  return dict(
+    email = 'schmitz-%s@example.com' % number,
+    firstname = 'Klaus',
+    lastname = 'Schmitz-%s' % number,
+    salutation = 'mr',
+    billing = dict(
+      number = "%s" % number,
+      firstname = 'Klaus',
+      lastname = 'Schmitz-%s' % number,
+      salutation = 'mr',
+      street = 'Neue Strasse',
+      streetNumber = '1',
+      city = 'Neustadt',
+      zipcode = '12345',
+      country = 2,
+    ),
+  )

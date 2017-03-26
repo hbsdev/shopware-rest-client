@@ -195,6 +195,9 @@ def put(ctx, coll, payload, suffix="", raise_for=False):
 
   return r
 
+def id(r):
+  id = r.json()["data"]["id"]
+  return id
 
 def dodelete(ctx, coll, suffix="", raise_for=False):
   conf = ctx["conf"]
