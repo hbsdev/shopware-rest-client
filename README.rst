@@ -11,12 +11,18 @@ Python 3 client library for Shopware 4 REST API
 * State: Experimental
 * OS: Unix/Linux and OSX
 
-Install latest release
-----------------------
+Usage
+-----
+
+see tests/functional
 
 .. code::
 
-  pip install --upgrade https://github.com/hbsdev/shopware-rest-client/raw/master/dist/shopware_rest_client-0.1.0.zip
+    ctx = ...
+    import swapi.orders
+    latest_orders = get_by_ordertime(ctx, "2016-12-29", "2016-12-30")
+
+Swapi uses the requests library: http://docs.python-requests.org/en/master/ - the result of the requests http call is in ctx["json"] after a call.
 
 Dependencies
 ------------
