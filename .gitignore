@@ -26,9 +26,10 @@ secret*
 pyvenv.cfg
 ./tmp/
 
-# Log files
+# Log files and cache
 log
 pip-log.txt
+.cache
 
 # Unit test / coverage reports
 .coverage
@@ -66,3 +67,4 @@ docs/_build
 doctest_runner.py
 dev.py
 dev
+
