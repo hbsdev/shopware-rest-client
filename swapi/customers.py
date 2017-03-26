@@ -22,8 +22,15 @@ def get(ctx, id = None):
   return get_raw(ctx, "/%s" % id)
 
 def get_by_number(ctx, number):
+  # useNumberAsId=true - This tells the API to query the customer's
+  # data by its number, instead of its id identifier.
+  # the number is a string and stored in billing.number
   # raises requests.exceptions.HTTPError if not found:
   return get_raw(ctx, "/%s?useNumberAsId=true" % number)
+
+def id(r):
+  import swapi
+  return swapi.id(r)
 
 def id_for_prefix(ctx, number_prefix):
   """returns id of first found who's ordernumber starts with number_prefix"""
@@ -84,8 +91,13 @@ def exists(ctx, number):
   try:
     r = get_by_number(ctx, number)
   except requests.exceptions.HTTPError as e:
-    assert str(e) == "404 Client Error: Not Found"
-    return False
+    s = "404 Client Error: Not Found"
+    if str(e)[:len(s)] == s:
+      return False
+    # re reaise all other exceptions:
+    raise
+    #assert str(e) == "404 Client Error: Not Found"
+    #return False
   data = r.json()
   if not data["success"]:
     return False
@@ -103,6 +115,12 @@ def get_data(ctx, id):
   except requests.exceptions.HTTPError as e:
     assert str(e) == "404 Client Error: Not Found"
     return None
+    #s = "404 Client Error: Not Found"
+    #if str(e) == s:
+    #  return None
+    ## re reaise all other exceptions:
+    #raise
+
   #LOG.debug("GET TEXT: %s" % r.text)  
   data = r.json()
   if not data["success"]:
@@ -374,4 +392,49 @@ def order_main_detail(detail_data, inStock=50000, as_active=True, with_configura
   if with_configuratorOptions:
     res["configuratorOptions"] = []
   return res
+
+
+def _is_active(c):
+  d = c.json()
+  try:
+    data = d["data"] # can raise keyerror
+  except KeyError:
+    return None
+  # other exceptions will raise here
+  return data["active"]
+
+def is_active(ctx, id):
+  c = get(ctx, id)
+  return _is_active(c)
+
+def is_active_by_number(ctx, number):
+  c = get_by_number(ctx, id)
+  return _is_active(c)
+
+def set_active(ctx, id, is_active):
+  return put(
+    ctx,
+    id,
+    payload = dict(
+      active = is_active,
+    )
+  )
+
+def set_active_by_number(ctx, number, is_active):
+  id = id_for(ctx, number)
+  return set_active(ctx, id, is_active)
+
+def is_active(ctx, id):
+  a = get(ctx, id)
+  d = a.json()
+  try:
+    data = d["data"] # can raise keyerror
+  except KeyError:
+    return None
+  # other exceptions will raise here
+  return data["active"]
+
+def is_active_by_number(ctx, number):
+  id = id_for(ctx, number)
+  return is_active(ctx, id)
 
