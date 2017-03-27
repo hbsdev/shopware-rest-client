@@ -51,6 +51,8 @@ Install dependencies:
 
 Run tests:
 
+.. code::
+
   source ./secret
   py.test
 
