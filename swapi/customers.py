@@ -113,13 +113,11 @@ def get_data(ctx, id):
   try:
     r = get(ctx, id)
   except requests.exceptions.HTTPError as e:
-    assert str(e) == "404 Client Error: Not Found"
-    return None
-    #s = "404 Client Error: Not Found"
-    #if str(e) == s:
-    #  return None
-    ## re reaise all other exceptions:
-    #raise
+    s = "404 Client Error: Not Found"
+    if str(e)[:len(s)] == s:
+      return None
+    # re raise if string does not match:
+    raise
 
   #LOG.debug("GET TEXT: %s" % r.text)  
   data = r.json()
