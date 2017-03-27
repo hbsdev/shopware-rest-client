@@ -43,6 +43,10 @@ Development
 
 Use a python 3.4 Virtual environment with pip.
 
+.. code::
+ 
+  pyvenv-3.4 shopware-rest-client
+
 Install dependencies: 
 
 .. code::
