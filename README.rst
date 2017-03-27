@@ -20,7 +20,9 @@ see tests/functional
 
     ctx = ...
     import swapi.orders
-    latest_orders = get_by_ordertime(ctx, "2016-12-29", "2016-12-30")
+    latest_orders = swapi.orders.get_by_ordertime(ctx, "2016-12-29", "2016-12-30")
+    for order in latest_orders:
+      # .. do something
 
 Swapi uses the requests library: http://docs.python-requests.org/en/master/ - the result of the requests http call is in ctx["json"] after a call.
 
