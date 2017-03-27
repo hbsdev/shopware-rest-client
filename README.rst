@@ -1,5 +1,5 @@
 ===============================
-Shopware REST API client (Proof of concept)
+Shopware REST API client 
 ===============================
 
 .. image:: https://img.shields.io/travis/hbsdev/shopware-rest-client.svg
