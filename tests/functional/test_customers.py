@@ -8,6 +8,9 @@ from pprint import pprint as pp
 
 def test_check_and_change_active(read_conf):
 
+  import pytest
+  pytest.skip("SW 5 vergibt beim Anlegen von Kunden eine abweichende Kundennummer.")
+  
   # Create API context:
   import swapi.context
   ctx = swapi.context.create(read_conf)
