@@ -4,6 +4,9 @@ __author__ = 'Kurt Miebach'
 __email__ = 'kwmiebach@gmail.com'
 __version__ = '0.1.0'
 
+
+from pprint import pprint as pp
+
 import swapi.log
 LOG = swapi.log.create()
 
@@ -191,6 +194,7 @@ def put(ctx, coll, payload, suffix="", raise_for=False):
       break
 
   if raise_for:
+    pp(dict(url=url))
     r.raise_for_status() # raises exception for bad response codes
 
   return r
