@@ -106,7 +106,7 @@ def exists(ctx, number):
 def exists_by_prefix(ctx, number_prefix):
   if id_for_prefix(ctx, number_prefix) is None:
     return False
-  return True  
+  return True
 
 def get_data(ctx, id):
   import requests.exceptions
@@ -119,11 +119,20 @@ def get_data(ctx, id):
     # re raise if string does not match:
     raise
 
-  #LOG.debug("GET TEXT: %s" % r.text)  
+  #LOG.debug("GET TEXT: %s" % r.text)
   data = r.json()
   if not data["success"]:
     return None
-  return data["data"]
+  data2 = data["data"]
+
+  # sw 4 compat:
+  import swapi.sw4_compat as compat4
+  if compat4.is_set(ctx['conf']):
+    import swapi.sw4_compat.customers as compat4customers
+    data2 = compat4customers.add_legacy_data(data2)
+
+  return data2
+
 
 def get_data_by_number(ctx, number):
   import requests.exceptions
@@ -138,11 +147,19 @@ def get_data_by_number(ctx, number):
     if str(e)[:len(s)] == s:
       return None
     raise Exception("Failed get_data_by_number(%s: %s" % (number,str(e)))
-  #LOG.debug("GET TEXT: %s" % r.text)  
+  #LOG.debug("GET TEXT: %s" % r.text)
   data = r.json()
   if not data["success"]:
     return None
-  return data["data"]
+  data2 = data["data"]
+
+  # sw 4 compat:
+  import swapi.sw4_compat as compat4
+  if compat4.is_set(ctx['conf']):
+    import swapi.sw4_compat.customers as compat4customers
+    data2 = compat4customers.add_legacy_data(data2)
+  return data2
+
 
 def get_filtered(ctx, filter):
   import swapi.filter
@@ -158,7 +175,7 @@ def get_filtered(ctx, filter):
     if str(e) == "400 Client Error: Bad Request":
       return None
     raise Exception("Failed get_data_by_number(%s: %s" % (number,str(e)))
-  #LOG.debug("GET TEXT: %s" % r.text)  
+  #LOG.debug("GET TEXT: %s" % r.text)
   data = r.json()
   if not data["success"]:
     return None
@@ -249,7 +266,7 @@ def dodelete_by_number(ctx, number, forgive=False):
     id = id_for(ctx, number)
     return dodelete(ctx, id, forgive=forgive)
   # Do forgive if not exists:
-  try:  
+  try:
     id = id_for(ctx, number)
   except:
     return None
@@ -343,7 +360,7 @@ def order_main_detail(detail_data, inStock=50000, as_active=True, with_configura
   if len(detail_data) < 9:
     import swapi.error
     raise swapi.error.SwapiParameterError("Need at least order number and price (%s)" % detail_data)
-  
+
   # Fill missing values with empty String
   while len(detail_data) < 9:
     detail_data.append("")

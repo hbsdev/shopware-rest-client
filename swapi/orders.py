@@ -113,7 +113,7 @@ def exists(ctx, number):
 def exists_by_prefix(ctx, number_prefix):
   if id_for_prefix(ctx, number_prefix) is None:
     return False
-  return True  
+  return True
 
 def get_data(ctx, id):
   import requests.exceptions
@@ -122,24 +122,25 @@ def get_data(ctx, id):
   except requests.exceptions.HTTPError as e:
     assert str(e) == "404 Client Error: Not Found"
     return None
-  #LOG.debug("GET TEXT: %s" % r.text)  
+  #LOG.debug("GET TEXT: %s" % r.text)
   json = r.json()
   data = r.json()
   if not data["success"]:
     return None
-  return json["data"]
+  data2 = json["data"]
+  return data2
 
 def get_data_by_number(ctx, number):
   import requests.exceptions
   try:
     r = get_by_number(ctx, number)
   except requests.exceptions.HTTPError as e:
-    if str(e) == "404 Client Error: Not Found":
+    if "404 Client Error: Not Found" in str(e):
       return None
     if str(e) == "400 Client Error: Bad Request":
       return None
     raise Exception("Failed get_data_by_number(%s: %s" % (number,str(e)))
-  #LOG.debug("GET TEXT: %s" % r.text)  
+  #LOG.debug("GET TEXT: %s" % r.text)
   json = r.json()
   data = r.json()
   if not data["success"]:
@@ -160,7 +161,7 @@ def get_filtered(ctx, filter):
     if str(e) == "400 Client Error: Bad Request":
       return None
     raise Exception("Failed get_data_by_number(%s: %s" % (number,str(e)))
-  #LOG.debug("GET TEXT: %s" % r.text)  
+  #LOG.debug("GET TEXT: %s" % r.text)
   json = r.json()
   data = r.json()
   if not data["success"]:
@@ -210,7 +211,7 @@ def put(ctx, id, payload):
 def set_status(ctx, id, status):
   payload = dict(
     orderStatusId = int(status),
-  ) 
+  )
   # https://developers.shopware.com/developers-guide/rest-api/examples/order/#example-3-update-an-order
   #$client->put('orders/15',  array(
   #    'paymentStatusId' => 10,
@@ -274,7 +275,7 @@ def dodelete_by_number(ctx, number, forgive=False):
     id = id_for(ctx, number)
     return dodelete(ctx, id, forgive=forgive)
   # Do forgive if not exists:
-  try:  
+  try:
     id = id_for(ctx, number)
   except:
     return None
@@ -368,7 +369,7 @@ def order_main_detail(detail_data, inStock=50000, as_active=True, with_configura
   if len(detail_data) < 9:
     import swapi.error
     raise swapi.error.SwapiParameterError("Need at least order number and price (%s)" % detail_data)
-  
+
   # Fill missing values with empty String
   while len(detail_data) < 9:
     detail_data.append("")
