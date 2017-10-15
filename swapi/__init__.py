@@ -22,7 +22,7 @@ def debuginfo(ctx, print=False):
 class NetRetry():
   """
   Handle Timeouts and Network errors.
-  usinh the "with" statement
+  using the "with" statement
   http://effbot.org/zone/python-with-statement.htm
   Also handle repetition, delay, pause, "give up"
   Define a timeout probably globably

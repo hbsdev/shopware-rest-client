@@ -4,7 +4,7 @@ import swapi.error
 
 
 def construct_auth(conf):
-  proto, server, basepath, user, key, use_query_plugin = conf
+  proto, server, basepath, user, key, use_query_plugin, sw4_compat = conf
   import requests.auth
   auth = requests.auth.HTTPDigestAuth(user, key)
   return auth
@@ -12,16 +12,16 @@ def construct_auth(conf):
 
 def construct_url(conf, coll):
   """
-  >>> conf = ("http","example.com", "/subshop/", "api", "key123key", 0)
+  >>> conf = ("http","example.com", "/subshop/", "api", "key123key", 0, 0)
   >>> construct_url(conf,"articles")
   'http://example.com/subshop/api/articles'
 
-  >>> conf = ("https","example.com", "/", "api", "key123key", 0)
+  >>> conf = ("https","example.com", "/", "api", "key123key", 0, 0)
   >>> construct_url(conf,"orders")
   'https://example.com/api/orders'
 
   """
-  proto, server, basepath, user, key, use_query_plugin = conf
+  proto, server, basepath, user, key, use_query_plugin, sw4_compat = conf
   url = '%s://%s%sapi/%s' % (proto, server, basepath, coll)
   import swapi
   swapi.LOG.debug("Url constructed: %s" % url)
