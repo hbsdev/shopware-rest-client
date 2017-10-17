@@ -38,6 +38,10 @@ def add_legacy_data(data):
     import copy
     billing = copy.deepcopy(data['defaultBillingAddress'])
     billing = swap_legacy_data_address(billing,original_field_name='defaultBillingAddress')
+
+    # customer number war vorher in billing number:
+    billing['number'] = data['number']
+
     data['billing'] = billing
 
     import copy
