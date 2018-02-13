@@ -32,11 +32,11 @@ def get_by_number(ctx, number):
 import easylog
 LOG = easylog.get("SWAPI")
 
-def get_by_customer_doctrine(ctx, customer_id):
+def get_by_customer_doctrine(ctx,customer_id,dql_field_string="o"):
   # join see http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html#joins
   dql_query = "+".join([
     "SELECT",
-    "o",
+    dql_field_string,
     "FROM+%5CShopware%5CModels%5COrder%5COrder+o",
     "JOIN+o.customer+c",
     "WHERE+c.id+=+%27" + "%s" % customer_id + "%27",
