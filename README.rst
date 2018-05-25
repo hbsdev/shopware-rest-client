@@ -1,15 +1,15 @@
 ===============================
-Shopware REST API client (Proof of concept)
+Shopware REST API client 
 ===============================
 
-.. image:: https://img.shields.io/travis/hbsdev/shopware-rest-client.svg
-        :target: https://travis-ci.org/hbsdev/shopware-rest-client
+Python 3 client library for Shopware 4/5 REST API
 
-Python 3 client library for Shopware 4 REST API
+* OS: Unix/Linux and probably OSX
 
-* Free software: Apache License, Version 2.0
-* State: Experimental
-* OS: Unix/Linux and OSX
+Licence
+---------------------
+
+This is proprietary software. Do not use, copy, or distribute without written permission of the owner. Sourcecode is only for review.
 
 Install latest release
 ----------------------
