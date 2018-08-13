@@ -66,6 +66,10 @@ def rest_call(ctx, method, url, auth, data=None, fake_error={}):
     data=data,
   )
 
+  # seciruty risk, for debug, prints auth!
+  #from pprint import pprint as pp
+  #pp(ctx["json1"])
+
   import requests
   if method == "GET":
     r = requests.get(
