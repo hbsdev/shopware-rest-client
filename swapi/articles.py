@@ -473,7 +473,7 @@ dict(
 #    )
 
 
-def article_main_detail(detail_data, inStock=50000, as_active=True, with_configuratorOptions=True):
+def article_main_detail(detail_data, as_active=True, with_configuratorOptions=True):
   """
   # (number, price, option, additionalText, ...)
   DETAIL_DATA = (
@@ -506,7 +506,7 @@ def article_main_detail(detail_data, inStock=50000, as_active=True, with_configu
     number = detail_data[0],
     supplierNumber = detail_data[6],
     active = active,
-    inStock = inStock,
+    inStock = detail_data[14],
     __options_prices = dict(replace=True),
     prices = [
       dict(
@@ -531,7 +531,7 @@ def article_main_detail(detail_data, inStock=50000, as_active=True, with_configu
     res["configuratorOptions"] = []
   return res
 
-def variant_data_extract(v, isMain, inStock, groupname, ignore_active=False, more_prices_percentual=[]):
+def variant_data_extract(v, isMain, groupname, ignore_active=False, more_prices_percentual=[]):
   # Grundpreis / unit price:
   purchaseUnit = v[9]
   referenceUnit = v[10]
@@ -557,7 +557,7 @@ def variant_data_extract(v, isMain, inStock, groupname, ignore_active=False, mor
     isMain = isMain,
     number = v[0],
     supplierNumber = v[6], #Herstellernummer
-    inStock = inStock,
+    inStock = v[14],
     __options_prices = dict(replace=True),
     prices = prices,
     configuratorOptions = [
@@ -586,7 +586,6 @@ def variant_data_extract(v, isMain, inStock, groupname, ignore_active=False, mor
 def article_variants(
   groupname,
   variant_data_list,
-  inStock=50000,
   ignore_active = False,
   skip_first = True,
   more_prices_percentual = [],
@@ -602,7 +601,17 @@ def article_variants(
   VARIANT_DATA_LIST = (
     ("%s-11" % base, 199.90, 'Blau', 'S / Blau', ean, pzn, herstnr),
     ("%s-12" % base, 299.90, 'Rot', 'M / Rot', ean, pzn, herstnr),
-    ("%s-13" % base, 399.90, 'Gelb', 'L / Gelb', ean, pzn, herstnr),
+    ("%s-13" % base, 399.90, 'Gelb', 'L / Gelb', ean, pzn, herstnr,
+
+      dreiscSeoTitleReplace,
+      dreiscSeoTitle,
+      grundpreis_info["purchaseUnit"],
+      grundpreis_info["referenceUnit"], # 10
+      grundpreis_info["unitId"],
+      v_pseudoPrice_brutto,
+      v_ebayPrice_brutto,
+      inStock,
+    ),
     )
   """
   options = []
@@ -616,7 +625,7 @@ def article_variants(
     skip_next = False
 
   for v in variant_data_list:
-    vdata = variant_data_extract(v, isMain, inStock, groupname, ignore_active, more_prices_percentual=more_prices_percentual)  
+    vdata = variant_data_extract(v, isMain, groupname, ignore_active, more_prices_percentual=more_prices_percentual)
 
     # Optionen auch bei skip_next hinzufuegen!
     options.append(dict(name = v[2]))
