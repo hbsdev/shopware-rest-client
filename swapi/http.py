@@ -66,32 +66,68 @@ def rest_call(ctx, method, url, auth, data=None, fake_error={}):
     data=data,
   )
 
+
+  import swapi.retry as swr
   import requests
+
+  retries = 10
+  pause_sec = 20
+
+  def throw_random():
+    import random
+    if random.randint(1,6) <= 4:
+      print ('RANDOM EXCEPTION! =======================')
+      raise Exception('Random Exception')
+    print ('RANDOM PASS =====================')
+
   if method == "GET":
-    r = requests.get(
-      url = url,
-      auth = auth,
-    )
+    @swr.retry(retries=retries,pause_sec=pause_sec)
+    def retry_get(url,auth):
+      # throw_random() # for manual testing
+      return requests.get(
+        url = url,
+        auth = auth,
+      )
+    r = retry_get(url,auth)
+
   elif method == "POST":
-    r = requests.post(
-      url = url,
-      auth = auth,
-      data = data,
-    )
+    @swr.retry(retries=retries,pause_sec=pause_sec)
+    def retry_post(url,auth,data):
+      # throw_random() # for manual testing
+      return requests.post(
+        url = url,
+        auth = auth,
+        data = data,
+      )
+    r = retry_post(url,auth,data)
+
   elif method == "PUT":
-    r = requests.put(
-      url = url,
-      auth = auth,
-      data = data,
-    )
+    @swr.retry(retries=retries,pause_sec=pause_sec)
+    def retry_put(url,auth,data):
+      # throw_random() # for manual testing
+      return requests.put(
+        url = url,
+        auth = auth,
+        data = data,
+      )
+    r = retry_put(url,auth,data)
+
   elif method == "DELETE":
-    r = requests.delete(
-      url = url,
-      auth = auth,
-    )
+    @swr.retry(retries=retries,pause_sec=pause_sec)
+    def retry_delete(url,auth):
+      # throw_random() # for manual testing
+      return requests.delete(
+        url = url,
+        auth = auth,
+      )
+
+    r = retry_delete(url,auth)
+
   else:
     raise Exception("Wrong method: %s" % method)
+
   swapi.LOG.debug("%s response: %s" % (method, str(r)))
+
   try:
     rdict = r.json()
   except:
