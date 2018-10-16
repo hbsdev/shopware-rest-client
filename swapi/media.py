@@ -94,3 +94,92 @@ def media(
   if description is not None:
     res["description"] = description
   return res
+
+def apply_hex_blacklist(hex2):
+  # sw https://github.com/shopware/shopware/blob/5.2/engine/Shopware/Bundle/MediaBundle/Strategy/Md5Strategy.php#L35
+  # ad wird zu g0 um nicht werbefilter, die auf 'ad' reagieren, zu verwirren:  
+  if hex2 == 'ad':
+    return 'g0'
+  return hex2
+
+def md5path8(s):
+  '''
+  param s: Bild Pfad a la media/image/name.jpg':
+  result: 3-gliedriger Pfad, der ans ende des 2-gliedrigen 
+  media/xxx/ Pfades angefuegt wird.
+
+  https://forum.shopware.com/discussion/comment/134466/#Comment_134466
+  Es sind die ersten 6 Zeichen des MD5-Hashes vom Namen inkl. Pfad ab "media"
+  z.B. media/image/bienen_teaser.jpg:
+  md5('media/image/bienen_teaser.jpg') = 'a8c36fe5227a5cb5d59a72f5e1d41f71'
+
+  also Verzeichnis: media/image/a8/c3/6f
+  '''
+  import hashlib; md5 = hashlib.md5(s.encode()).hexdigest()
+  return '%s/%s/%s' % (
+    apply_hex_blacklist(md5[:2]),
+    apply_hex_blacklist(md5[2:4]),
+    apply_hex_blacklist(md5[4:6]),
+  )
+
+
+def uri_is_tn(s):
+    # wip
+    # 'media/image/my-image_100x100.png
+    lastpart = s.split('/')[-1]
+    tn_parts = s.split('_')
+    if len(tn_parts) < 2:
+      return False
+    if len(tn_parts[1].split('x') < 2:
+      return False
+    return True
+
+
+def deep_uri(s):
+    '''
+    fuegt 3 Verzeichnisebenen ein, die idR dem linken Teil des md5 code
+    von s entsprechen. analog zu SW getUrl
+    SW Original: https://developers.shopware.com/developers-guide/shopware-5-media-service/#url-generation    
+    echo $mediaService->getUrl('media/image/my-fancy-image.png');
+    // result: https://www.myshop.com/media/image/0a/20/03/my-fancy-image.png
+    '''
+
+
+
+    parts = s.split('/')
+    return '/'.join(
+        parts[:-1] +
+        [md5path8(s),] +
+        parts[-1:]
+    )
+
+def flat_uri(s):
+    # die umkehrung von deep_url
+    parts = s.split('/')
+    assert(len(parts[2])) == 2
+    assert(len(parts[3])) == 2
+    assert(len(parts[4])) == 2
+    return '/'.join(
+        parts[:2] +
+        parts[5:]
+    )
+
+
+def verify_deep_uri(s):
+    '''
+    assert verify_deep_url('media/image/06/cf/b1/mp_logo_pp-h100px.png')
+    assert verify_deep_url('media/image/03/97/85/mp_logo.png')
+    print('Expected error:')
+    assert False == verify_deep_uri('media/image/BO/GU/S!/BOGUS.png')
+    '''
+    import c.swapi.media
+    import imp; imp.reload(c.swapi.media)
+    flat1 = flat_uri(s)
+    deep2 = deep_uri(flat1)
+    if deep2 == s:
+        return True
+    print('Deep uri error:')
+    print('A. calculated flat uri: %s' % flat1)
+    print('B. deep uri input: %s' % s)
+    print('C. deep uri from A: %s' % deep2)
+    return False
