@@ -130,7 +130,7 @@ def uri_is_tn(s):
     tn_parts = s.split('_')
     if len(tn_parts) < 2:
       return False
-    if len(tn_parts[1].split('x') < 2:
+    if len(tn_parts[1].split('x')) < 2:
       return False
     return True
 
