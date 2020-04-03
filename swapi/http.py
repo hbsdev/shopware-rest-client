@@ -2,6 +2,8 @@ import requests.auth
 import swapi
 import swapi.error
 
+# wegen schlechtem ssl cert:
+SSL_STRICT_YN = False
 
 def construct_auth(conf):
   proto, server, basepath, user, key, use_query_plugin, sw4_compat = conf
@@ -80,6 +82,7 @@ def rest_call(ctx, method, url, auth, data=None, fake_error={}):
       raise Exception('Random Exception')
     print ('RANDOM PASS =====================')
 
+  
   if method == "GET":
     @swr.retry(retries=retries,pause_sec=pause_sec)
     def retry_get(url,auth):
@@ -87,6 +90,7 @@ def rest_call(ctx, method, url, auth, data=None, fake_error={}):
       return requests.get(
         url = url,
         auth = auth,
+        verify = SSL_STRICT_YN,
       )
     r = retry_get(url,auth)
 
@@ -98,6 +102,7 @@ def rest_call(ctx, method, url, auth, data=None, fake_error={}):
         url = url,
         auth = auth,
         data = data,
+        verify = SSL_STRICT_YN,
       )
     r = retry_post(url,auth,data)
 
@@ -109,6 +114,7 @@ def rest_call(ctx, method, url, auth, data=None, fake_error={}):
         url = url,
         auth = auth,
         data = data,
+        verify = SSL_STRICT_YN,
       )
     r = retry_put(url,auth,data)
 
@@ -119,6 +125,7 @@ def rest_call(ctx, method, url, auth, data=None, fake_error={}):
       return requests.delete(
         url = url,
         auth = auth,
+        verify = SSL_STRICT_YN,
       )
 
     r = retry_delete(url,auth)

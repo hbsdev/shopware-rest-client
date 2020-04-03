@@ -7,6 +7,9 @@ __version__ = '0.1.0'
 
 from pprint import pprint as pp
 
+# wegen schlechtem ssl cert:
+SSL_STRICT_YN = False
+
 import swapi.log
 LOG = swapi.log.create()
 
@@ -214,6 +217,7 @@ def dodelete(ctx, coll, suffix="", raise_for=False):
   r = requests.delete(
     url = url,
     auth = auth,
+    verify = SSL_STRICT_YN,
   )
   if (str(r) == "<Response [200]>") or (str(r) == "<Response [201]>"):
     swapi.LOG.debug("Response of DELETE request: %s" % str(r))
